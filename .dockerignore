@@ -1,0 +1,17 @@
+.venv/
+.git/
+.pytest_cache/
+.ruff_cache/
+.matplotlib/
+__pycache__/
+*.pyc
+.env
+.env.*
+data/
+reports/
+mlruns/
+mlflow.db
+artifacts/serving/
+notebooks/
+tests/
+ui/

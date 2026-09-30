@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ink: #18312f;
+  --muted: #60716d;
+  --accent: #176e63;
+  --accent-soft: #e3f1ed;
+  --line: #dce5e1;
+  --surface: #ffffff;
+  --canvas: #f5f8f6;
+}
+
+html, body, [class*="css"], [data-testid="stApp"] {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+}
+
+[data-testid="stAppViewContainer"] { background: var(--canvas); }
+[data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer { display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
+.block-container { max-width: 1200px; padding: 2.1rem 3rem 5rem; }
+
+h1, h2, h3 { font-family: 'Manrope', sans-serif !important; letter-spacing: -0.035em; color: var(--ink) !important; }
+h1 { font-size: clamp(2.2rem, 4vw, 3.45rem) !important; line-height: 1.15 !important; }
+h2 { font-size: 1.55rem !important; margin-bottom: .4rem !important; }
+p { line-height: 1.55; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: .25rem 0 1.8rem; border-bottom: 1px solid var(--line); margin-bottom: 2.2rem; gap: 1rem; }
+.brand { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: .98rem; letter-spacing: .015em; }
+.brand-mark { display: inline-block; width: 13px; height: 13px; border-radius: 4px; background: var(--accent); margin-right: .65rem; transform: rotate(-16deg); }
+.topbar-note { color: var(--muted); font-size: .81rem; text-align: right; }
+.eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .72rem; font-weight: 800; color: var(--accent); margin-bottom: .7rem; }
+.hero-subtitle { max-width: 670px; color: var(--muted); font-size: 1.06rem; margin-top: .55rem; }
+.hero-meta { display: inline-flex; align-items: center; gap: .45rem; background: var(--accent-soft); color: #175f55; padding: .46rem .75rem; border-radius: 999px; font-size: .79rem; font-weight: 700; margin-top: .9rem; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #249881; }
+
+.section-heading { margin: 2.4rem 0 .9rem; }
+.section-heading p { margin: 0; color: var(--muted); font-size: .9rem; }
+.section-heading h2 { margin: 0 0 .25rem !important; }
+
+[data-testid="stForm"] { border: 1px solid var(--line) !important; background: var(--surface); border-radius: 18px !important; padding: 1.1rem 1.2rem .4rem !important; box-shadow: 0 9px 28px rgba(32, 77, 67, .04); }
+[data-testid="stForm"] label, [data-testid="stSelectbox"] label, [data-testid="stTextInput"] label { color: var(--ink) !important; font-weight: 700; font-size: .86rem; }
+[data-testid="stTextInput"] input, [data-testid="stSelectbox"] > div > div { border-radius: 10px !important; border-color: var(--line) !important; }
+[data-testid="stFormSubmitButton"] button, .stButton button[kind="primary"] { border: none !important; border-radius: 10px !important; background: var(--accent) !important; color: white !important; font-weight: 700 !important; padding: .66rem 1.1rem !important; }
+[data-testid="stFormSubmitButton"] button:hover, .stButton button[kind="primary"]:hover { background: #11564e !important; }
+
+.metric-card, .info-card, .product-card, .persona-card, .empty-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 7px 24px rgba(32, 77, 67, .035); }
+.metric-card { min-height: 150px; padding: 1.2rem 1.3rem; }
+.metric-label { color: var(--muted); font-size: .77rem; text-transform: uppercase; font-weight: 800; letter-spacing: .095em; }
+.metric-value { font-family: 'Manrope', sans-serif; font-size: clamp(1.45rem, 2vw, 2.05rem); font-weight: 800; letter-spacing: -.045em; margin: .52rem 0 .26rem; line-height: 1.15; }
+.metric-foot { color: var(--muted); font-size: .79rem; }
+.risk-higher { color: #a04b38; } .risk-lower { color: var(--accent); }
+.info-card { padding: 1.2rem 1.35rem; margin-top: .8rem; }
+.info-card p { color: var(--muted); margin: .35rem 0 0; font-size: .88rem; }
+.product-card { padding: 1rem 1.15rem; margin-bottom: .7rem; min-height: 105px; }
+.product-head { display: flex; justify-content: space-between; align-items: start; gap: .7rem; }
+.product-title { font-family: 'Manrope', sans-serif; font-size: .94rem; font-weight: 750; line-height: 1.35; }
+.product-code { color: var(--muted); font-size: .76rem; margin-top: .25rem; }
+.product-price { white-space: nowrap; font-weight: 800; font-size: .91rem; }
+.product-foot { color: var(--muted); font-size: .75rem; margin-top: .62rem; }
+.persona-card { padding: 1rem 1.1rem; min-height: 122px; }
+.persona-card.active { border-color: #89bbb0; background: #f0f8f5; }
+.persona-title { font-weight: 800; font-size: .87rem; margin-bottom: .35rem; }
+.persona-copy { color: var(--muted); font-size: .79rem; line-height: 1.4; }
+.empty-card { padding: 2rem; margin-top: 1.2rem; color: var(--muted); }
+.fine-print { color: var(--muted); font-size: .76rem; line-height: 1.5; margin-top: 1rem; }
+
+[data-testid="stPlotlyChart"] { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+[data-testid="stAlert"] { border-radius: 12px; }
+
+@media (max-width: 760px) {
+  .block-container { padding: 1.1rem 1rem 3rem; }
+  .topbar { padding-bottom: 1.1rem; margin-bottom: 1.5rem; }
+  .topbar-note { font-size: .7rem; }
+  .hero-subtitle { font-size: .96rem; }
+  [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
+  [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { min-width: min(100%, 280px) !important; width: 100% !important; flex: 1 1 100% !important; }
+  .metric-card { min-height: auto; }
+}
