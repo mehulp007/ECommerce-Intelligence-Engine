@@ -18,7 +18,7 @@ These instructions use **Windows PowerShell**. Run each command from the project
 
 ### 1. Install prerequisites and download the project
 
-Install **Python 3.12** and **Git for Windows**. Internet access is needed to download dependencies and the dataset. Because this repository is private, your GitHub account must have access; sign in when Git prompts you.
+Install **Python 3.12** and **Git for Windows**. Internet access is needed to download dependencies and the dataset. This repository is public; you can clone or download it without a GitHub account or signing in.
 
 ```powershell
 git clone https://github.com/mehulp007/ecommerce-intelligence-engine.git
@@ -28,7 +28,7 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt -r requirements-train.txt -r requirements-recommend.txt -r requirements-api.txt -r requirements-ui.txt
 ```
 
-If you downloaded a ZIP instead, extract it and open PowerShell in the extracted folder. Start with the `py -3.12` command. The commands use the virtual environment directly, so you do not need to activate it or change PowerShell execution policies.
+Alternatively, open the [repository](https://github.com/mehulp007/ecommerce-intelligence-engine), select **Code > Download ZIP**, extract it, and open PowerShell in the extracted folder. Start with the `py -3.12` command. The commands use the virtual environment directly, so you do not need to activate it or change PowerShell execution policies.
 
 ### 2. Download the data, train the models, and create a bundle
 
