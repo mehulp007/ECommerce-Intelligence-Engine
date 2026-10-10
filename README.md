@@ -1,5 +1,24 @@
 # E-Commerce Intelligence Engine
 
+> **v2 rebuild in progress.** The project is being rebuilt as a full-stack retail intelligence studio on the
+> [H&M Personalized Fashion Recommendations](https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations)
+> dataset (31.8M transactions, 1.37M customers, 105k products with images): a two-stage recommender, visual and
+> natural-language product search, churn and lifetime-value models, a campaign simulator, a Gemini-powered analyst
+> copilot, and a Next.js frontend. The original UCI Online Retail version described below is preserved at the
+> [`v1-uci`](https://github.com/mehulp007/ECommerce-Intelligence-Engine/tree/v1-uci) tag.
+>
+> | v2 phase | Status |
+> |---|---|
+> | 0. Repository preparation | Done |
+> | 1. Data foundation (H&M ingestion, DuckDB, thumbnails) | Planned |
+> | 2. Two-stage recommender (MAP@12) | Planned |
+> | 3. Image and text embeddings, product search | Planned |
+> | 4. Churn, lifetime value, segments, campaign simulator | Planned |
+> | 5. API v2 | Planned |
+> | 6. Gemini analyst copilot | Planned |
+> | 7. Next.js frontend | Planned |
+> | 8. CI, Docker Compose, documentation | Planned |
+
 A local customer analytics application built with FastAPI and Streamlit. It uses historical retail transactions to show customer personas, a 30-day inactivity probability, model contributions, and product recommendations.
 
 ## Features
@@ -38,8 +57,8 @@ The repository is public; no GitHub account or sign-in is needed. Internet acces
 
 **Option A - ZIP download (Git is not needed)**
 
-1. Open the [repository](https://github.com/mehulp007/ecommerce-intelligence-engine) and select **Code > Download ZIP**.
-2. Extract the ZIP completely. Open the extracted project folder, usually named `ecommerce-intelligence-engine-main`.
+1. Open the [repository](https://github.com/mehulp007/ECommerce-Intelligence-Engine) and select **Code > Download ZIP**.
+2. Extract the ZIP completely. Open the extracted project folder, usually named `ECommerce-Intelligence-Engine-main`.
 3. Open PowerShell in the folder that contains `pyproject.toml`, `README.md`, `api`, and `ui`. In File Explorer, open that folder, type `powershell` in its address bar, and press Enter.
 4. Continue to step 3. **Do not run `git clone` inside the extracted ZIP folder.**
 
@@ -48,8 +67,8 @@ The repository is public; no GitHub account or sign-in is needed. Internet acces
 Install Git for Windows, open PowerShell in the parent folder where you want to save the project, and run:
 
 ```powershell
-git clone https://github.com/mehulp007/ecommerce-intelligence-engine.git
-cd ecommerce-intelligence-engine
+git clone https://github.com/mehulp007/ECommerce-Intelligence-Engine.git
+cd ECommerce-Intelligence-Engine
 ```
 
 Both options should leave PowerShell in the project root. Check it:

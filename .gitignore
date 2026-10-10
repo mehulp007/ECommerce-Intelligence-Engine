@@ -21,3 +21,32 @@ data/processed/*
 artifacts/serving/*
 !artifacts/serving/.gitkeep
 artifacts/bundles/
+
+# Local assistant, editor and planning files (never committed)
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.mcp.json
+/*plan*.md
+.vscode/
+.idea/
+
+# Credentials (Kaggle tokens live in the user profile, never in the repo)
+kaggle.json
+access_token
+
+# v2 local data and generated outputs
+data/thumbnails/
+data/embeddings/
+*.duckdb
+*.duckdb.wal
+artifacts/*
+!artifacts/.gitkeep
+
+# Next.js frontend
+web/node_modules/
+web/.next/
+web/out/
+web/next-env.d.ts
+web/.env*.local
