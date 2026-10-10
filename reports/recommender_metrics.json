@@ -1,0 +1,203 @@
+{
+  "as_of": {
+    "validation_week": [
+      "2020-09-16",
+      "2020-09-23"
+    ],
+    "training_label_weeks": [
+      "2020-09-09",
+      "2020-09-02",
+      "2020-08-26"
+    ],
+    "inference_as_of": "2020-09-23"
+  },
+  "validation_customers": 68984,
+  "validation_pairs": 213728,
+  "candidates_per_customer": 108.0,
+  "candidate_recall": {
+    "repurchase": 0.027937378350052403,
+    "popular": 0.0768032265309178,
+    "age_popular": 0.0503630783051355,
+    "cooc": 0.038502208414433296,
+    "als": 0.039283575385536756,
+    "all": 0.13901781703847882
+  },
+  "results": {
+    "ranker": {
+      "map_at_12": 0.034394224160808035,
+      "recall_at_12": 0.0567450217098368
+    },
+    "popular": {
+      "map_at_12": 0.008747681312782597,
+      "recall_at_12": 0.02287954783650247
+    },
+    "repurchase_then_popular": {
+      "map_at_12": 0.02570440303887211,
+      "recall_at_12": 0.038923304386884267
+    },
+    "cooc_then_popular": {
+      "map_at_12": 0.011640485126592845,
+      "recall_at_12": 0.02702032489893697
+    },
+    "als": {
+      "map_at_12": 0.011163505614690856,
+      "recall_at_12": 0.020053525976942654
+    }
+  },
+  "ablations": {
+    "without_repurchase": {
+      "map_at_12": 0.027943108146187227,
+      "recall_at_12": 0.049675288216798924
+    },
+    "without_popular": {
+      "map_at_12": 0.03414129881120333,
+      "recall_at_12": 0.05559402605180416
+    },
+    "without_age_popular": {
+      "map_at_12": 0.0344746837193236,
+      "recall_at_12": 0.05692281778709388
+    },
+    "without_cooc": {
+      "map_at_12": 0.03368806533111161,
+      "recall_at_12": 0.05503724359934122
+    },
+    "without_als": {
+      "map_at_12": 0.0343233726164089,
+      "recall_at_12": 0.05589347207665818
+    },
+    "without_article_features": {
+      "map_at_12": 0.03181985136931772,
+      "recall_at_12": 0.051069583770025455
+    },
+    "without_customer_features": {
+      "map_at_12": 0.03404498948619051,
+      "recall_at_12": 0.055523843389729
+    },
+    "without_pair_features": {
+      "map_at_12": 0.031137791866034676,
+      "recall_at_12": 0.051317562509357685
+    }
+  },
+  "ranker": {
+    "rounds": 120,
+    "params": {
+      "objective": "lambdarank",
+      "metric": "map",
+      "learning_rate": 0.05,
+      "num_leaves": 63,
+      "min_data_in_leaf": 200,
+      "feature_fraction": 0.8,
+      "bagging_fraction": 0.8,
+      "bagging_freq": 1,
+      "lambdarank_truncation_level": 24,
+      "verbosity": -1,
+      "num_threads": 0,
+      "seed": 42,
+      "deterministic": true,
+      "force_row_wise": true
+    },
+    "features": [
+      "repurchase_rank",
+      "popular_rank",
+      "age_popular_rank",
+      "cooc_score",
+      "cooc_rank",
+      "als_score",
+      "als_rank",
+      "n_sources",
+      "sales_1w",
+      "sales_2w",
+      "sales_4w",
+      "sales_12w",
+      "sales_total",
+      "buyers_4w",
+      "price_4w",
+      "online_share_4w",
+      "days_since_first_sale",
+      "days_since_last_sale",
+      "trend_1w_4w",
+      "age_bucket_sales_1w",
+      "product_type_no",
+      "graphical_appearance_no",
+      "colour_group_code",
+      "perceived_colour_master_id",
+      "department_no",
+      "index_group_no",
+      "section_no",
+      "garment_group_no",
+      "age",
+      "purchases_total",
+      "purchases_4w",
+      "purchases_12w",
+      "visits_total",
+      "days_since_last_purchase",
+      "customer_avg_price",
+      "customer_online_share",
+      "distinct_articles",
+      "pair_purchases",
+      "pair_days_since",
+      "product_purchases",
+      "type_share",
+      "index_group_share",
+      "garment_share",
+      "colour_share",
+      "price_ratio"
+    ],
+    "top_features_by_gain": {
+      "pair_days_since": 224774.3,
+      "department_no": 181335.7,
+      "days_since_last_purchase": 73993.1,
+      "product_purchases": 72456.5,
+      "repurchase_rank": 57089.9,
+      "product_type_no": 38209.5,
+      "trend_1w_4w": 33918.7,
+      "age_bucket_sales_1w": 32708.2,
+      "cooc_rank": 27060.1,
+      "colour_group_code": 27043.9,
+      "sales_1w": 22927.7,
+      "purchases_4w": 21133.7,
+      "section_no": 20335.6,
+      "garment_share": 19940.5,
+      "online_share_4w": 18807.9
+    }
+  },
+  "candidate_sizes": {
+    "repurchase": 40,
+    "popular": 60,
+    "age_popular": 30,
+    "cooc": 40,
+    "als": 40
+  },
+  "scoring": {
+    "customers": 1371980,
+    "rows": 16463760,
+    "catalog_coverage": 0.2157,
+    "reason_share": {
+      "popular_in_age_group": 0.6485,
+      "trending": 0.1472,
+      "bought_together": 0.116,
+      "buy_again": 0.0597,
+      "similar_shoppers": 0.0285
+    },
+    "output": "data\\serving\\recommendations.parquet"
+  },
+  "timings_seconds": {
+    "load": 1.0,
+    "week 2020-09-16: 7,446,952 candidate rows": 49.7,
+    "week 2020-09-09: 2,513,717 candidate rows": 51.6,
+    "week 2020-09-02: 2,679,344 candidate rows": 54.5,
+    "week 2020-08-26: 2,837,888 candidate rows": 59.7,
+    "early stopping (120 rounds)": 27.8,
+    "ranker training": 24.0,
+    "evaluation": 25.7,
+    "ablations": 306.3,
+    "final model": 23.6,
+    "score all customers": 571.9
+  },
+  "total_seconds": 1195.7,
+  "package_versions": {
+    "lightgbm": "4.7.0",
+    "implicit": "0.7.3",
+    "duckdb": "1.5.6"
+  }
+}

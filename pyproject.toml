@@ -24,6 +24,12 @@ data = [
 train = [
     "scikit-learn>=1.5,<2",
 ]
+recsys = [
+    "lightgbm>=4.5,<5",
+    "implicit>=0.7,<1",
+    "scipy>=1.12,<2",
+    "threadpoolctl>=3.2,<4",
+]
 dev = [
     "pytest>=8,<10",
     "ruff>=0.9,<1",

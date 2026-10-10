@@ -15,6 +15,10 @@ data_app = typer.Typer(
     help="Download, ingest, and validate the H&M dataset.", no_args_is_help=True
 )
 app.add_typer(data_app, name="data")
+recsys_app = typer.Typer(
+    help="Train, evaluate, and run the product recommender.", no_args_is_help=True
+)
+app.add_typer(recsys_app, name="recsys")
 
 
 def _paths() -> ProjectPaths:
@@ -109,6 +113,25 @@ def data_all() -> None:
     data_warehouse()
     data_quality()
     data_thumbnails(workers=0, limit=0)
+
+
+@recsys_app.command("train")
+def recsys_train(
+    ablations: bool = typer.Option(True, help="Measure each source's contribution."),
+    score: bool = typer.Option(True, help="Write top-12 lists for every customer."),
+) -> None:
+    """Evaluate on the final week, train the production ranker, score customers."""
+    from ecommerce_intelligence.recsys.pipeline import run
+
+    started = time.perf_counter()
+    report = run(_paths(), ablations=ablations, score_all=score, log=typer.echo)
+    ranker = report["results"]["ranker"]
+    typer.echo(
+        f"Validation MAP@12 {ranker['map_at_12']:.5f} "
+        f"(popularity baseline {report['results']['popular']['map_at_12']:.5f})"
+    )
+    typer.echo("Report: reports/recommender_metrics.json")
+    _done("Recommender", started)
 
 
 if __name__ == "__main__":

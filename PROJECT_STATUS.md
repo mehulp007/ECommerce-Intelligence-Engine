@@ -4,7 +4,7 @@ Last updated: 2026-10-10
 
 ## Current phase
 
-**Phase 1 — Data foundation: complete.** Phase 2 (two-stage recommender) is next.
+**Phase 2 — Two-stage recommender: complete.** Phase 3 (image and text embeddings) is next.
 
 ## Phase log
 
@@ -12,7 +12,7 @@ Last updated: 2026-10-10
 |---|---|---|
 | 0 | Repository preparation, `v1-uci` tag, ignore rules, environment template | Complete |
 | 1 | H&M download, typed Parquet, DuckDB warehouse, integrity report, WebP thumbnails, `eie` CLI | Complete |
-| 2 | Candidate generation + LightGBM ranker, MAP@12 on the final week, baselines and ablations | Planned |
+| 2 | Candidate generation + LightGBM ranker, MAP@12 on the final week, baselines and ablations | Complete |
 | 3 | FashionCLIP image/text embeddings, FAISS similar-item and text search | Planned |
 | 4 | Churn (inactivity proxy), lifetime value, segments, campaign simulator | Planned |
 | 5 | FastAPI v2 | Planned |
@@ -32,6 +32,20 @@ Last updated: 2026-10-10
 | Ingest / warehouse / quality runtime | 28.3 s / 7.7 s / 9.8 s on an i7-14650HX |
 | Thumbnails | 105,100 WebP images (256x384), 0 failures, 0.59 GB, 225 s |
 | Articles without a photo | 442 |
+
+## Phase 2 measured results
+
+| Item | Value |
+|---|---|
+| Held-out week | 2020-09-16 to 2020-09-22, 68,984 buyers, 213,728 purchased pairs |
+| Ranker MAP@12 / Recall@12 | 0.0344 / 5.67% (popularity 0.0088, buy-again + trending 0.0257) |
+| Candidates | ~108 per customer, covering 13.9% of held-out purchases |
+| Ranker | LightGBM LambdaRank, 45 features, 120 rounds chosen by early stopping on the 9 Sep week |
+| Production output | 16,463,760 rows: top 12 for all 1,371,980 customers as of 2020-09-23 |
+| Runtime | 20 minutes end to end, including eight ablation models |
+
+Follow-up for Phase 3: re-encode sparse categorical codes (some are -1 or very large) to consecutive
+integers to remove LightGBM warnings, then re-measure with image-embedding candidates.
 
 ## Known data facts
 

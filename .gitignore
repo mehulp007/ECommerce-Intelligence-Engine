@@ -38,6 +38,7 @@ access_token
 
 # v2 local data and generated outputs
 data/parquet/
+data/serving/
 data/duckdb_tmp/
 data/thumbnails/
 data/embeddings/
