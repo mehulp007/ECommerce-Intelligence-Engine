@@ -1,50 +1,725 @@
 {
-  "archive_bytes": 23715478,
-  "archive_sha256": "f5385cbb54bbebf7196389109c6b0621faab0c304e3702548165e71c84aede8b",
-  "cancellation_invoice_rows": 9288,
-  "duplicate_source_rows": 5268,
-  "excluded_purchase_rows": 144025,
-  "feature_columns": [
-    "recency_days",
-    "frequency_180d",
-    "monetary_180d",
-    "orders_30d",
-    "spend_30d",
-    "distinct_products_180d",
-    "return_invoices_180d",
-    "observed_history_days"
-  ],
-  "history_days": 180,
-  "invalid_customer_id_rows": 0,
-  "label_days": 30,
-  "label_definition": "1 = no qualifying purchase in [snapshot, snapshot + 30 days)",
-  "missing_customer_id_rows": 135080,
-  "missing_description_rows": 1454,
-  "missing_invoice_date_rows": 0,
-  "missing_invoice_no_rows": 0,
-  "missing_stock_code_rows": 0,
-  "non_positive_quantity_rows": 10624,
-  "non_positive_unit_price_rows": 2517,
-  "purchase_customers": 4338,
-  "purchase_invoices": 18532,
-  "purchase_products": 3665,
-  "return_rows_with_customer_id": 8905,
-  "snapshot_dates": [
-    "2011-04-01",
-    "2011-05-01",
-    "2011-06-01",
-    "2011-07-01",
-    "2011-08-01",
-    "2011-09-01",
-    "2011-10-01",
-    "2011-11-01"
-  ],
-  "snapshot_rows": 21613,
-  "source_first_date": "2010-12-01T08:26:00",
-  "source_last_date": "2011-12-09T12:50:00",
-  "source_rows": 541909,
-  "source_url": "https://archive.ics.uci.edu/static/public/352/online%2Bretail.zip",
-  "valid_purchase_rows": 397884,
-  "workbook_bytes": 23715344,
-  "workbook_sha256": "43465a06f2ccf7c8b5bd2892bc7defb52f97487934fe93b16ae4c3936424676d"
+  "tables": {
+    "transactions": {
+      "parquet_bytes": 423170805
+    },
+    "customers": {
+      "parquet_bytes": 91804683
+    },
+    "articles": {
+      "parquet_bytes": 3470714
+    }
+  },
+  "transactions": {
+    "rows": 31788324,
+    "first_date": "2018-09-20",
+    "last_date": "2020-09-22",
+    "customers": 1362281,
+    "articles": 104547,
+    "revenue_units": 884645.974052,
+    "price_min": 1.7e-05,
+    "price_median": 0.025407,
+    "price_p99": 0.10022,
+    "price_max": 0.591525,
+    "nonpositive_price_rows": 0,
+    "rows_with_nulls": 0,
+    "online_share": 0.704028,
+    "repeated_line_rows": 2974905,
+    "orphan_customer_rows": 0,
+    "orphan_article_rows": 0,
+    "weekly": [
+      {
+        "week_start": "2018-09-17",
+        "rows": 165807,
+        "customers": 43474,
+        "revenue_units": 4958.828864
+      },
+      {
+        "week_start": "2018-09-24",
+        "rows": 428969,
+        "customers": 107056,
+        "revenue_units": 12796.810729
+      },
+      {
+        "week_start": "2018-10-01",
+        "rows": 258243,
+        "customers": 72262,
+        "revenue_units": 7927.243119
+      },
+      {
+        "week_start": "2018-10-08",
+        "rows": 332338,
+        "customers": 78805,
+        "revenue_units": 9792.129814
+      },
+      {
+        "week_start": "2018-10-15",
+        "rows": 304909,
+        "customers": 76681,
+        "revenue_units": 8926.345559
+      },
+      {
+        "week_start": "2018-10-22",
+        "rows": 374582,
+        "customers": 97269,
+        "revenue_units": 10984.116847
+      },
+      {
+        "week_start": "2018-10-29",
+        "rows": 276798,
+        "customers": 76430,
+        "revenue_units": 8902.199
+      },
+      {
+        "week_start": "2018-11-05",
+        "rows": 246201,
+        "customers": 70212,
+        "revenue_units": 7971.680085
+      },
+      {
+        "week_start": "2018-11-12",
+        "rows": 241293,
+        "customers": 69681,
+        "revenue_units": 7687.292424
+      },
+      {
+        "week_start": "2018-11-19",
+        "rows": 454319,
+        "customers": 119802,
+        "revenue_units": 12923.511729
+      },
+      {
+        "week_start": "2018-11-26",
+        "rows": 239656,
+        "customers": 74322,
+        "revenue_units": 7334.161356
+      },
+      {
+        "week_start": "2018-12-03",
+        "rows": 237324,
+        "customers": 72304,
+        "revenue_units": 7245.376949
+      },
+      {
+        "week_start": "2018-12-10",
+        "rows": 233896,
+        "customers": 73055,
+        "revenue_units": 7352.087373
+      },
+      {
+        "week_start": "2018-12-17",
+        "rows": 339873,
+        "customers": 93374,
+        "revenue_units": 8951.402729
+      },
+      {
+        "week_start": "2018-12-24",
+        "rows": 253151,
+        "customers": 69179,
+        "revenue_units": 6517.747407
+      },
+      {
+        "week_start": "2018-12-31",
+        "rows": 260010,
+        "customers": 67843,
+        "revenue_units": 6751.412847
+      },
+      {
+        "week_start": "2019-01-07",
+        "rows": 317294,
+        "customers": 74175,
+        "revenue_units": 8518.311458
+      },
+      {
+        "week_start": "2019-01-14",
+        "rows": 262544,
+        "customers": 66113,
+        "revenue_units": 7025.429271
+      },
+      {
+        "week_start": "2019-01-21",
+        "rows": 289459,
+        "customers": 73830,
+        "revenue_units": 7594.699424
+      },
+      {
+        "week_start": "2019-01-28",
+        "rows": 288811,
+        "customers": 72161,
+        "revenue_units": 7595.370203
+      },
+      {
+        "week_start": "2019-02-04",
+        "rows": 261056,
+        "customers": 69103,
+        "revenue_units": 7232.805864
+      },
+      {
+        "week_start": "2019-02-11",
+        "rows": 248953,
+        "customers": 65908,
+        "revenue_units": 6939.408407
+      },
+      {
+        "week_start": "2019-02-18",
+        "rows": 342250,
+        "customers": 89493,
+        "revenue_units": 9027.218932
+      },
+      {
+        "week_start": "2019-02-25",
+        "rows": 287456,
+        "customers": 75630,
+        "revenue_units": 8086.414254
+      },
+      {
+        "week_start": "2019-03-04",
+        "rows": 279353,
+        "customers": 69593,
+        "revenue_units": 7989.76022
+      },
+      {
+        "week_start": "2019-03-11",
+        "rows": 286005,
+        "customers": 68867,
+        "revenue_units": 8156.472593
+      },
+      {
+        "week_start": "2019-03-18",
+        "rows": 278820,
+        "customers": 71805,
+        "revenue_units": 8344.877576
+      },
+      {
+        "week_start": "2019-03-25",
+        "rows": 324525,
+        "customers": 79493,
+        "revenue_units": 9768.067729
+      },
+      {
+        "week_start": "2019-04-01",
+        "rows": 374612,
+        "customers": 85437,
+        "revenue_units": 10747.717169
+      },
+      {
+        "week_start": "2019-04-08",
+        "rows": 288861,
+        "customers": 71209,
+        "revenue_units": 8752.765305
+      },
+      {
+        "week_start": "2019-04-15",
+        "rows": 320789,
+        "customers": 75631,
+        "revenue_units": 9274.805508
+      },
+      {
+        "week_start": "2019-04-22",
+        "rows": 380476,
+        "customers": 86734,
+        "revenue_units": 10826.701729
+      },
+      {
+        "week_start": "2019-04-29",
+        "rows": 403495,
+        "customers": 91114,
+        "revenue_units": 11521.607254
+      },
+      {
+        "week_start": "2019-05-06",
+        "rows": 283185,
+        "customers": 68230,
+        "revenue_units": 8180.857322
+      },
+      {
+        "week_start": "2019-05-13",
+        "rows": 340916,
+        "customers": 78026,
+        "revenue_units": 9456.16561
+      },
+      {
+        "week_start": "2019-05-20",
+        "rows": 357346,
+        "customers": 84929,
+        "revenue_units": 9786.428339
+      },
+      {
+        "week_start": "2019-05-27",
+        "rows": 407801,
+        "customers": 92434,
+        "revenue_units": 10793.376136
+      },
+      {
+        "week_start": "2019-06-03",
+        "rows": 335091,
+        "customers": 77054,
+        "revenue_units": 9163.122119
+      },
+      {
+        "week_start": "2019-06-10",
+        "rows": 327337,
+        "customers": 74618,
+        "revenue_units": 9099.99561
+      },
+      {
+        "week_start": "2019-06-17",
+        "rows": 560076,
+        "customers": 113958,
+        "revenue_units": 13717.061695
+      },
+      {
+        "week_start": "2019-06-24",
+        "rows": 562990,
+        "customers": 119805,
+        "revenue_units": 13510.303695
+      },
+      {
+        "week_start": "2019-07-01",
+        "rows": 429526,
+        "customers": 99063,
+        "revenue_units": 10348.274915
+      },
+      {
+        "week_start": "2019-07-08",
+        "rows": 374637,
+        "customers": 86677,
+        "revenue_units": 8570.539898
+      },
+      {
+        "week_start": "2019-07-15",
+        "rows": 371077,
+        "customers": 85374,
+        "revenue_units": 8333.319
+      },
+      {
+        "week_start": "2019-07-22",
+        "rows": 471866,
+        "customers": 96339,
+        "revenue_units": 9655.843169
+      },
+      {
+        "week_start": "2019-07-29",
+        "rows": 329384,
+        "customers": 76483,
+        "revenue_units": 7158.980068
+      },
+      {
+        "week_start": "2019-08-05",
+        "rows": 298792,
+        "customers": 70278,
+        "revenue_units": 6968.807153
+      },
+      {
+        "week_start": "2019-08-12",
+        "rows": 325028,
+        "customers": 73041,
+        "revenue_units": 7587.72539
+      },
+      {
+        "week_start": "2019-08-19",
+        "rows": 259688,
+        "customers": 68290,
+        "revenue_units": 6768.764271
+      },
+      {
+        "week_start": "2019-08-26",
+        "rows": 234254,
+        "customers": 63695,
+        "revenue_units": 6523.274542
+      },
+      {
+        "week_start": "2019-09-02",
+        "rows": 260083,
+        "customers": 69656,
+        "revenue_units": 8378.215339
+      },
+      {
+        "week_start": "2019-09-09",
+        "rows": 246418,
+        "customers": 67333,
+        "revenue_units": 8069.061169
+      },
+      {
+        "week_start": "2019-09-16",
+        "rows": 232278,
+        "customers": 64877,
+        "revenue_units": 7860.174966
+      },
+      {
+        "week_start": "2019-09-23",
+        "rows": 423424,
+        "customers": 97992,
+        "revenue_units": 13908.877695
+      },
+      {
+        "week_start": "2019-09-30",
+        "rows": 315721,
+        "customers": 84730,
+        "revenue_units": 10078.621576
+      },
+      {
+        "week_start": "2019-10-07",
+        "rows": 262706,
+        "customers": 73531,
+        "revenue_units": 8336.721814
+      },
+      {
+        "week_start": "2019-10-14",
+        "rows": 225444,
+        "customers": 67063,
+        "revenue_units": 7162.971508
+      },
+      {
+        "week_start": "2019-10-21",
+        "rows": 247178,
+        "customers": 75885,
+        "revenue_units": 8083.672661
+      },
+      {
+        "week_start": "2019-10-28",
+        "rows": 279693,
+        "customers": 76884,
+        "revenue_units": 9496.888322
+      },
+      {
+        "week_start": "2019-11-04",
+        "rows": 201642,
+        "customers": 63941,
+        "revenue_units": 6900.786085
+      },
+      {
+        "week_start": "2019-11-11",
+        "rows": 207805,
+        "customers": 65020,
+        "revenue_units": 7202.012356
+      },
+      {
+        "week_start": "2019-11-18",
+        "rows": 194902,
+        "customers": 63433,
+        "revenue_units": 6670.990661
+      },
+      {
+        "week_start": "2019-11-25",
+        "rows": 509929,
+        "customers": 132183,
+        "revenue_units": 14821.330576
+      },
+      {
+        "week_start": "2019-12-02",
+        "rows": 207321,
+        "customers": 68389,
+        "revenue_units": 6490.372424
+      },
+      {
+        "week_start": "2019-12-09",
+        "rows": 206233,
+        "customers": 70160,
+        "revenue_units": 6652.454898
+      },
+      {
+        "week_start": "2019-12-16",
+        "rows": 338744,
+        "customers": 97206,
+        "revenue_units": 8665.415576
+      },
+      {
+        "week_start": "2019-12-23",
+        "rows": 238241,
+        "customers": 70927,
+        "revenue_units": 6119.934373
+      },
+      {
+        "week_start": "2019-12-30",
+        "rows": 242442,
+        "customers": 68588,
+        "revenue_units": 6263.96039
+      },
+      {
+        "week_start": "2020-01-06",
+        "rows": 239717,
+        "customers": 65429,
+        "revenue_units": 6282.347864
+      },
+      {
+        "week_start": "2020-01-13",
+        "rows": 225283,
+        "customers": 61096,
+        "revenue_units": 5971.313441
+      },
+      {
+        "week_start": "2020-01-20",
+        "rows": 250954,
+        "customers": 70411,
+        "revenue_units": 6847.931051
+      },
+      {
+        "week_start": "2020-01-27",
+        "rows": 246670,
+        "customers": 70170,
+        "revenue_units": 6918.548305
+      },
+      {
+        "week_start": "2020-02-03",
+        "rows": 251067,
+        "customers": 70716,
+        "revenue_units": 7075.284373
+      },
+      {
+        "week_start": "2020-02-10",
+        "rows": 229090,
+        "customers": 66022,
+        "revenue_units": 6546.627983
+      },
+      {
+        "week_start": "2020-02-17",
+        "rows": 230867,
+        "customers": 65610,
+        "revenue_units": 6674.280847
+      },
+      {
+        "week_start": "2020-02-24",
+        "rows": 258513,
+        "customers": 72513,
+        "revenue_units": 7668.203712
+      },
+      {
+        "week_start": "2020-03-02",
+        "rows": 295123,
+        "customers": 76304,
+        "revenue_units": 8342.627797
+      },
+      {
+        "week_start": "2020-03-09",
+        "rows": 235102,
+        "customers": 62028,
+        "revenue_units": 6710.605966
+      },
+      {
+        "week_start": "2020-03-16",
+        "rows": 183656,
+        "customers": 47253,
+        "revenue_units": 5371.052085
+      },
+      {
+        "week_start": "2020-03-23",
+        "rows": 225843,
+        "customers": 52184,
+        "revenue_units": 6639.411898
+      },
+      {
+        "week_start": "2020-03-30",
+        "rows": 321997,
+        "customers": 68805,
+        "revenue_units": 9102.125542
+      },
+      {
+        "week_start": "2020-04-06",
+        "rows": 426294,
+        "customers": 82268,
+        "revenue_units": 11589.298644
+      },
+      {
+        "week_start": "2020-04-13",
+        "rows": 223643,
+        "customers": 50617,
+        "revenue_units": 6700.060559
+      },
+      {
+        "week_start": "2020-04-20",
+        "rows": 302008,
+        "customers": 66298,
+        "revenue_units": 8534.974322
+      },
+      {
+        "week_start": "2020-04-27",
+        "rows": 222977,
+        "customers": 53276,
+        "revenue_units": 6455.224017
+      },
+      {
+        "week_start": "2020-05-04",
+        "rows": 238121,
+        "customers": 58650,
+        "revenue_units": 6691.857186
+      },
+      {
+        "week_start": "2020-05-11",
+        "rows": 280555,
+        "customers": 67156,
+        "revenue_units": 7727.081593
+      },
+      {
+        "week_start": "2020-05-18",
+        "rows": 374636,
+        "customers": 84539,
+        "revenue_units": 9943.533542
+      },
+      {
+        "week_start": "2020-05-25",
+        "rows": 383412,
+        "customers": 90350,
+        "revenue_units": 10291.210492
+      },
+      {
+        "week_start": "2020-06-01",
+        "rows": 321259,
+        "customers": 78891,
+        "revenue_units": 8705.848847
+      },
+      {
+        "week_start": "2020-06-08",
+        "rows": 286095,
+        "customers": 74762,
+        "revenue_units": 7571.83539
+      },
+      {
+        "week_start": "2020-06-15",
+        "rows": 487324,
+        "customers": 109321,
+        "revenue_units": 11455.089966
+      },
+      {
+        "week_start": "2020-06-22",
+        "rows": 555483,
+        "customers": 123434,
+        "revenue_units": 12611.934339
+      },
+      {
+        "week_start": "2020-06-29",
+        "rows": 365694,
+        "customers": 90579,
+        "revenue_units": 8609.920966
+      },
+      {
+        "week_start": "2020-07-06",
+        "rows": 292934,
+        "customers": 77159,
+        "revenue_units": 6990.395271
+      },
+      {
+        "week_start": "2020-07-13",
+        "rows": 285794,
+        "customers": 75992,
+        "revenue_units": 6783.621746
+      },
+      {
+        "week_start": "2020-07-20",
+        "rows": 296129,
+        "customers": 79882,
+        "revenue_units": 7222.958898
+      },
+      {
+        "week_start": "2020-07-27",
+        "rows": 306061,
+        "customers": 80016,
+        "revenue_units": 7347.934949
+      },
+      {
+        "week_start": "2020-08-03",
+        "rows": 309830,
+        "customers": 80607,
+        "revenue_units": 7444.468068
+      },
+      {
+        "week_start": "2020-08-10",
+        "rows": 277388,
+        "customers": 72111,
+        "revenue_units": 6922.034881
+      },
+      {
+        "week_start": "2020-08-17",
+        "rows": 244577,
+        "customers": 69030,
+        "revenue_units": 6762.291831
+      },
+      {
+        "week_start": "2020-08-24",
+        "rows": 286525,
+        "customers": 80792,
+        "revenue_units": 8883.000271
+      },
+      {
+        "week_start": "2020-08-31",
+        "rows": 266497,
+        "customers": 76754,
+        "revenue_units": 8554.538339
+      },
+      {
+        "week_start": "2020-09-07",
+        "rows": 273575,
+        "customers": 76528,
+        "revenue_units": 9280.541593
+      },
+      {
+        "week_start": "2020-09-14",
+        "rows": 231309,
+        "customers": 66499,
+        "revenue_units": 7932.859949
+      },
+      {
+        "week_start": "2020-09-21",
+        "rows": 64996,
+        "customers": 20233,
+        "revenue_units": 2273.016475
+      }
+    ]
+  },
+  "customers": {
+    "rows": 1371980,
+    "distinct_ids": 1371980,
+    "missing_age": 15861,
+    "age_min": 16,
+    "age_median": 32.0,
+    "age_max": 99,
+    "fashion_news_share": 0.347622,
+    "active_share": 0.338492,
+    "with_transactions": 1362281,
+    "club_member_status": {
+      "active": 1272491,
+      "pre-create": 92960,
+      "missing": 6062,
+      "left club": 467
+    },
+    "fashion_news_frequency": {
+      "none": 877713,
+      "regularly": 477416,
+      "missing": 16009,
+      "monthly": 842
+    }
+  },
+  "articles": {
+    "rows": 105542,
+    "distinct_ids": 105542,
+    "products": 47224,
+    "missing_description": 416,
+    "never_sold": 995,
+    "product_groups": {
+      "Garment Upper body": 42741,
+      "Garment Lower body": 19812,
+      "Garment Full body": 13292,
+      "Accessories": 11158,
+      "Underwear": 5490,
+      "Shoes": 5283,
+      "Swimwear": 3127,
+      "Socks & Tights": 2442,
+      "Nightwear": 1899,
+      "Unknown": 121,
+      "Underwear/nightwear": 54,
+      "Cosmetic": 49,
+      "Bags": 25,
+      "Items": 17,
+      "Furniture": 13,
+      "Garment and Shoe care": 9,
+      "Stationery": 5,
+      "Interior textile": 3,
+      "Fun": 2
+    },
+    "with_thumbnail": 105100
+  },
+  "checks": {
+    "passed": true,
+    "failures": []
+  }
 }

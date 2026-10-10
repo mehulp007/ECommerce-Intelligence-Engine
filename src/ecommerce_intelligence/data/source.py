@@ -1,81 +1,91 @@
-"""Fetch and identify the immutable UCI Online Retail source workbook."""
+"""Locate, download, and unpack the H&M Personalized Fashion competition archive."""
 
 from __future__ import annotations
 
 import hashlib
+import re
 import shutil
-import urllib.request
+import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
-SOURCE_URL = "https://archive.ics.uci.edu/static/public/352/online%2Bretail.zip"
-ARCHIVE_NAME = "online_retail.zip"
-WORKBOOK_NAME = "Online Retail.xlsx"
-EXPECTED_SOURCE_ROWS = 541_909
-EXPECTED_ARCHIVE_SHA256 = (
-    "f5385cbb54bbebf7196389109c6b0621faab0c304e3702548165e71c84aede8b"
-)
-EXPECTED_WORKBOOK_SHA256 = (
-    "43465a06f2ccf7c8b5bd2892bc7defb52f97487934fe93b16ae4c3936424676d"
-)
+from ecommerce_intelligence.paths import ProjectPaths
+
+COMPETITION = "h-and-m-personalized-fashion-recommendations"
+CSV_MEMBERS = ("articles.csv", "customers.csv", "transactions_train.csv")
+IMAGE_MEMBER = re.compile(r"^images/(?P<folder>\d{3})/(?P<article_id>\d{10})\.jpg$")
 
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as source:
-        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+        for chunk in iter(lambda: source.read(8 * 1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
 
 
-def ensure_workbook(
-    raw_dir: Path, *, force_download: bool = False
-) -> tuple[Path, dict]:
-    raw_dir.mkdir(parents=True, exist_ok=True)
-    archive = raw_dir / ARCHIVE_NAME
-    workbook = raw_dir / WORKBOOK_NAME
+def download(paths: ProjectPaths, *, force: bool = False) -> Path:
+    """Download the archive with the Kaggle CLI using the user's own token."""
+    paths.raw.mkdir(parents=True, exist_ok=True)
+    if paths.archive.is_file() and not force:
+        return paths.archive
+    command = [
+        sys.executable,
+        "-m",
+        "kaggle",
+        "competitions",
+        "download",
+        "-c",
+        COMPETITION,
+        "-p",
+        str(paths.raw),
+    ]
+    if force:
+        command.append("--force")
+    subprocess.run(command, check=True)
+    if not paths.archive.is_file():
+        raise FileNotFoundError(f"Download finished without {paths.archive.name}")
+    return paths.archive
 
-    if force_download or not archive.is_file():
-        temporary = raw_dir / f"{ARCHIVE_NAME}.part"
-        try:
-            request = urllib.request.Request(
-                SOURCE_URL, headers={"User-Agent": "ecommerce-intelligence-engine/0.1"}
-            )
-            with (
-                urllib.request.urlopen(request, timeout=120) as response,
-                temporary.open("wb") as target,
-            ):
-                shutil.copyfileobj(response, target)
-            temporary.replace(archive)
-        finally:
-            temporary.unlink(missing_ok=True)
 
-    archive_sha256 = sha256_file(archive)
-    if archive_sha256 != EXPECTED_ARCHIVE_SHA256:
-        raise ValueError("The UCI archive differs from the validated source checksum")
+def extract_csvs(paths: ProjectPaths) -> dict[str, int]:
+    """Copy the three CSV tables out of the archive; images stay zipped."""
+    if not paths.archive.is_file():
+        raise FileNotFoundError(
+            "H&M archive not found. Run `eie data download` after joining the "
+            "competition and saving a Kaggle API token."
+        )
+    paths.csv.mkdir(parents=True, exist_ok=True)
+    sizes: dict[str, int] = {}
+    with zipfile.ZipFile(paths.archive) as archive:
+        members = {info.filename: info for info in archive.infolist()}
+        missing = [name for name in CSV_MEMBERS if name not in members]
+        if missing:
+            raise ValueError(f"Archive is missing expected tables: {missing}")
+        for name in CSV_MEMBERS:
+            info = members[name]
+            target = paths.csv / name
+            if target.is_file() and target.stat().st_size == info.file_size:
+                sizes[name] = info.file_size
+                continue
+            partial = target.with_suffix(".csv.part")
+            try:
+                # ZipFile verifies the member CRC once the stream is fully read.
+                with archive.open(info) as source, partial.open("wb") as sink:
+                    shutil.copyfileobj(source, sink, length=8 * 1024 * 1024)
+                partial.replace(target)
+            finally:
+                partial.unlink(missing_ok=True)
+            sizes[name] = info.file_size
+    return sizes
 
-    with zipfile.ZipFile(archive) as source_zip:
-        if source_zip.testzip() is not None:
-            raise ValueError("The UCI download failed its ZIP integrity check")
-        members = [item for item in source_zip.infolist() if not item.is_dir()]
-        if len(members) != 1 or members[0].filename != WORKBOOK_NAME:
-            raise ValueError("The UCI archive does not contain the expected workbook")
-        temporary = raw_dir / f"{WORKBOOK_NAME}.part"
-        try:
-            with source_zip.open(members[0]) as source, temporary.open("wb") as target:
-                shutil.copyfileobj(source, target)
-            temporary.replace(workbook)
-        finally:
-            temporary.unlink(missing_ok=True)
 
-    workbook_sha256 = sha256_file(workbook)
-    if workbook_sha256 != EXPECTED_WORKBOOK_SHA256:
-        raise ValueError("The UCI workbook differs from the validated source checksum")
-
-    return workbook, {
-        "source_url": SOURCE_URL,
-        "archive_sha256": archive_sha256,
-        "workbook_sha256": workbook_sha256,
-        "archive_bytes": archive.stat().st_size,
-        "workbook_bytes": workbook.stat().st_size,
-    }
+def image_members(archive: zipfile.ZipFile) -> list[tuple[str, str]]:
+    """Return (article_id, member name) pairs for well-formed image entries."""
+    pairs = []
+    for name in archive.namelist():
+        match = IMAGE_MEMBER.match(name)
+        if match and match["folder"] == match["article_id"][:3]:
+            pairs.append((match["article_id"], name))
+    return sorted(pairs)

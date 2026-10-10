@@ -1,0 +1,14 @@
+{
+  "archive_images": 105100,
+  "created": 105100,
+  "skipped_existing": 0,
+  "failed": 0,
+  "failed_article_ids": [],
+  "thumbnail_files": 105100,
+  "thumbnail_bytes": 592997082,
+  "box": [
+    256,
+    384
+  ],
+  "format": "webp q80"
+}

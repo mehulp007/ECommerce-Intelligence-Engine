@@ -1,1 +1,1 @@
-"""Dataset ingestion and validation."""
+"""H&M dataset download, ingestion, validation, and image preparation."""
