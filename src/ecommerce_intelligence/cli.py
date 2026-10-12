@@ -23,6 +23,11 @@ search_app = typer.Typer(
     help="Build product embeddings and search the catalog.", no_args_is_help=True
 )
 app.add_typer(search_app, name="search")
+customers_app = typer.Typer(
+    help="Churn, lifetime value, segments, and retention campaigns.",
+    no_args_is_help=True,
+)
+app.add_typer(customers_app, name="customers")
 
 
 def _paths() -> ProjectPaths:
@@ -153,6 +158,56 @@ def search_evaluate() -> None:
         typer.echo(f"  {score:.1f}  {query}")
     typer.echo(f"Precision@10 {report['precision_at_10']:.3f}")
     typer.echo("Report: reports/search_quality.json")
+
+
+@customers_app.command("train")
+def customers_train(
+    trials: int = typer.Option(25, help="Optuna tuning trials for the churn model."),
+) -> None:
+    """Evaluate churn and lifetime value, fit segments, and score every customer."""
+    from ecommerce_intelligence.customers.pipeline import run
+
+    started = time.perf_counter()
+    report = run(_paths(), trials=trials, log=typer.echo)
+    best = report["churn"]["test_results"]["xgboost_tuned"]
+    typer.echo(
+        f"Churn test ROC AUC {best['roc_auc']:.3f}, Brier {best['brier']:.3f}; "
+        f"{report['segments']['chosen_k']} segments; "
+        f"{report['scores']['customers']:,} customers scored"
+    )
+    typer.echo("Report: reports/customer_metrics.json")
+    _done("Customer intelligence", started)
+
+
+@customers_app.command("campaign")
+def customers_campaign(
+    budget: float = typer.Option(500.0, help="Total budget in price units."),
+    cost: float = typer.Option(0.005, help="Cost per contacted customer."),
+    uplift: float = typer.Option(
+        0.10, help="Share of would-be-inactive customers retained."
+    ),
+) -> None:
+    """Plan a retention campaign from the latest customer scores."""
+    import pandas as pd
+
+    from ecommerce_intelligence.customers.campaign import plan
+
+    scores = pd.read_parquet(
+        _paths().root / "data" / "serving" / "customer_scores.parquet"
+    )
+    result = plan(scores, budget=budget, cost_per_contact=cost, uplift=uplift)
+    typer.echo(
+        f"Contact {result.contacted:,} customers for {result.spend:,.2f}: "
+        "expected value "
+        f"saved {result.expected_value_saved:,.2f}, net {result.expected_net:,.2f}, "
+        f"ROI {result.roi:.1%}"
+    )
+    if result.contacted:
+        top = (
+            result.customers.groupby("segment_name").size().sort_values(ascending=False)
+        )
+        for name, count in top.head(5).items():
+            typer.echo(f"  {count:>9,}  {name}")
 
 
 def _describe(hits) -> None:

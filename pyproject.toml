@@ -23,6 +23,9 @@ data = [
 ]
 train = [
     "scikit-learn>=1.5,<2",
+    "xgboost>=2.1,<4",
+    "optuna>=4,<5",
+    "joblib>=1.4,<2",
 ]
 recsys = [
     "lightgbm>=4.5,<5",

@@ -39,7 +39,12 @@ class StyleModel:
             raise ValueError("Embeddings and articles are out of sync; rerun embed")
         return cls(normalize(embeddings.item))
 
-    def prepare(self, con: duckdb.DuckDBPyConnection, as_of: str) -> None:
+    def prepare(
+        self,
+        con: duckdb.DuckDBPyConnection,
+        as_of: str,
+        days: int = config.REPURCHASE_DAYS,
+    ) -> None:
         """Profile every target with recent purchases as a weighted mean vector."""
         history = con.execute(f"""
             SELECT customer_idx, article_idx,
@@ -51,7 +56,7 @@ class StyleModel:
                 SELECT customer_idx, article_idx, max(purchase_date) AS last_date
                 FROM tx SEMI JOIN targets USING (customer_idx)
                 WHERE purchase_date >= DATE '{as_of}' - INTERVAL
-                        {config.REPURCHASE_DAYS} DAY
+                        {days} DAY
                   AND purchase_date < DATE '{as_of}'
                 GROUP BY customer_idx, article_idx
             )

@@ -4,7 +4,7 @@ Last updated: 2026-10-10
 
 ## Current phase
 
-**Phase 3 — Image and text embeddings, product search: complete.** Phase 4 (churn, lifetime value, segments, campaign simulator) is next.
+**Phase 4 — Customer intelligence: complete.** Phase 5 (FastAPI v2) is next.
 
 ## Phase log
 
@@ -14,7 +14,7 @@ Last updated: 2026-10-10
 | 1 | H&M download, typed Parquet, DuckDB warehouse, integrity report, WebP thumbnails, `eie` CLI | Complete |
 | 2 | Candidate generation + LightGBM ranker, MAP@12 on the final week, baselines and ablations | Complete |
 | 3 | FashionCLIP image/text embeddings, FAISS similar-item and text search | Complete |
-| 4 | Churn (inactivity proxy), lifetime value, segments, campaign simulator | Planned |
+| 4 | Churn (inactivity proxy), lifetime value, segments, campaign simulator | Complete |
 | 5 | FastAPI v2 | Planned |
 | 6 | Gemini analyst copilot | Planned |
 | 7 | Next.js frontend | Planned |
@@ -60,6 +60,18 @@ reports no warnings.
 
 Possible follow-up: drop the similar-style candidate source (keep the feature) and confirm on a new
 validation week rather than the held-out week.
+
+## Phase 4 measured results
+
+| Item | Value |
+|---|---|
+| Churn split | Train Oct 2019–Feb 2020 (40% sample, 1.96M rows), calibrate Mar–Apr 2020, test May–Jul 2020 (2.96M customer-months) |
+| Churn test | ROC AUC 0.795, AP 0.857, Brier 0.178 (recency-only logistic 0.701; all-feature logistic 0.789) |
+| Calibration | Calibrating on COVID months worsened Brier (0.178 vs 0.175 uncalibrated); production calibrates on Jun–Jul 2020 |
+| Lifetime value holdout | Spend MAE 0.139, correlation 0.668, total +7.3% vs actual (previous-period baseline MAE 0.145) |
+| Segments | 5 clusters (silhouette 0.193) on behaviour + visual style; 378,488 lapsed customers |
+| Scores | 1,371,980 customers; 993,492 active; mean churn probability 0.627; total 180-day value 212,005 units |
+| Runtime | 13 minutes; GPU TreeSHAP cut churn scoring from 12.8 to 4.0 minutes |
 
 ## Known data facts
 

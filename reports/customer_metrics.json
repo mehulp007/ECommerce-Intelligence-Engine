@@ -1,0 +1,646 @@
+{
+  "scoring_as_of": "2020-09-23",
+  "churn": {
+    "target": "no purchase in the 60 days after the snapshot (inactivity proxy)",
+    "population": "customers with a purchase in the 365 days before the snapshot",
+    "split": {
+      "train_snapshots": [
+        "2019-10-01",
+        "2019-11-01",
+        "2019-12-01",
+        "2020-01-01",
+        "2020-02-01"
+      ],
+      "calibration_snapshots": [
+        "2020-03-01",
+        "2020-04-01"
+      ],
+      "test_snapshots": [
+        "2020-05-01",
+        "2020-06-01",
+        "2020-07-01"
+      ],
+      "train_rows_sampled": 1963527,
+      "calibration_rows": 1928744,
+      "test_rows": 2960017
+    },
+    "prevalence_by_snapshot": {
+      "2019-10-01": {
+        "customers": 996436,
+        "inactive_rate": 0.6576
+      },
+      "2019-11-01": {
+        "customers": 985172,
+        "inactive_rate": 0.6476
+      },
+      "2019-12-01": {
+        "customers": 980857,
+        "inactive_rate": 0.6666
+      },
+      "2020-01-01": {
+        "customers": 976801,
+        "inactive_rate": 0.6784
+      },
+      "2020-02-01": {
+        "customers": 971402,
+        "inactive_rate": 0.6907
+      },
+      "2020-03-01": {
+        "customers": 962257,
+        "inactive_rate": 0.7041
+      },
+      "2020-04-01": {
+        "customers": 966487,
+        "inactive_rate": 0.6833
+      },
+      "2020-05-01": {
+        "customers": 982872,
+        "inactive_rate": 0.6377
+      },
+      "2020-06-01": {
+        "customers": 987522,
+        "inactive_rate": 0.622
+      },
+      "2020-07-01": {
+        "customers": 989623,
+        "inactive_rate": 0.6507
+      }
+    },
+    "tuned_params": {
+      "n_estimators": 450,
+      "max_depth": 8,
+      "learning_rate": 0.0243401003806778,
+      "min_child_weight": 2.6444872133321455,
+      "subsample": 0.7225843182740547,
+      "colsample_bytree": 0.945674074853794,
+      "reg_lambda": 9.063491609394635
+    },
+    "test_results": {
+      "xgboost_tuned": {
+        "rows": 2960017,
+        "prevalence": 0.63681,
+        "roc_auc": 0.79532,
+        "average_precision": 0.85672,
+        "brier": 0.17826,
+        "log_loss": 0.53231,
+        "balanced_accuracy_at_0_5": 0.65163,
+        "precision_at_0_5": 0.72131,
+        "recall_at_0_5": 0.9402,
+        "f1_at_0_5": 0.81634,
+        "tn": 390313,
+        "fp": 684729,
+        "fn": 112726,
+        "tp": 1772249
+      },
+      "xgboost_default": {
+        "rows": 2960017,
+        "prevalence": 0.63681,
+        "roc_auc": 0.79467,
+        "average_precision": 0.85601,
+        "brier": 0.17843,
+        "log_loss": 0.53277,
+        "balanced_accuracy_at_0_5": 0.65132,
+        "precision_at_0_5": 0.72115,
+        "recall_at_0_5": 0.93984,
+        "f1_at_0_5": 0.8161,
+        "tn": 390021,
+        "fp": 685021,
+        "fn": 113403,
+        "tp": 1771572
+      },
+      "logistic_all_features": {
+        "rows": 2960017,
+        "prevalence": 0.63681,
+        "roc_auc": 0.78909,
+        "average_precision": 0.85074,
+        "brier": 0.18037,
+        "log_loss": 0.5385,
+        "balanced_accuracy_at_0_5": 0.65164,
+        "precision_at_0_5": 0.72144,
+        "recall_at_0_5": 0.93898,
+        "f1_at_0_5": 0.81596,
+        "tn": 391635,
+        "fp": 683407,
+        "fn": 115014,
+        "tp": 1769961
+      },
+      "logistic_recency_only": {
+        "rows": 2960017,
+        "prevalence": 0.63681,
+        "roc_auc": 0.70134,
+        "average_precision": 0.7919,
+        "brier": 0.20941,
+        "log_loss": 0.60625,
+        "balanced_accuracy_at_0_5": 0.58227,
+        "precision_at_0_5": 0.68163,
+        "recall_at_0_5": 0.90892,
+        "f1_at_0_5": 0.77903,
+        "tn": 274796,
+        "fp": 800246,
+        "fn": 171676,
+        "tp": 1713299
+      },
+      "xgboost_tuned_uncalibrated": {
+        "rows": 2960017,
+        "prevalence": 0.63681,
+        "roc_auc": 0.79532,
+        "average_precision": 0.85672,
+        "brier": 0.17458,
+        "log_loss": 0.52386,
+        "balanced_accuracy_at_0_5": 0.67421,
+        "precision_at_0_5": 0.7393,
+        "recall_at_0_5": 0.91283,
+        "f1_at_0_5": 0.81695,
+        "tn": 468283,
+        "fp": 606759,
+        "fn": 164315,
+        "tp": 1720660
+      }
+    },
+    "test_by_month": {
+      "2020-05-01": {
+        "rows": 982872,
+        "prevalence": 0.63769,
+        "roc_auc": 0.78868,
+        "average_precision": 0.8513,
+        "brier": 0.18025,
+        "log_loss": 0.5377,
+        "balanced_accuracy_at_0_5": 0.64822,
+        "precision_at_0_5": 0.72,
+        "recall_at_0_5": 0.93942,
+        "f1_at_0_5": 0.81521,
+        "tn": 127137,
+        "fp": 228971,
+        "fn": 37968,
+        "tp": 588796
+      },
+      "2020-06-01": {
+        "rows": 987522,
+        "prevalence": 0.62198,
+        "roc_auc": 0.79775,
+        "average_precision": 0.85063,
+        "brier": 0.183,
+        "log_loss": 0.54354,
+        "balanced_accuracy_at_0_5": 0.64806,
+        "precision_at_0_5": 0.70543,
+        "recall_at_0_5": 0.94623,
+        "f1_at_0_5": 0.80828,
+        "tn": 130614,
+        "fp": 242691,
+        "fn": 33026,
+        "tp": 581191
+      },
+      "2020-07-01": {
+        "rows": 989623,
+        "prevalence": 0.65075,
+        "roc_auc": 0.80089,
+        "average_precision": 0.86902,
+        "brier": 0.17155,
+        "log_loss": 0.51576,
+        "balanced_accuracy_at_0_5": 0.65937,
+        "precision_at_0_5": 0.73867,
+        "recall_at_0_5": 0.9352,
+        "f1_at_0_5": 0.8254,
+        "tn": 132562,
+        "fp": 213067,
+        "fn": 41732,
+        "tp": 602262
+      }
+    },
+    "calibration_deciles": [
+      {
+        "bin": 0,
+        "mean_predicted": 0.2704,
+        "observed_rate": 0.1565,
+        "customers": 296002
+      },
+      {
+        "bin": 1,
+        "mean_predicted": 0.4741,
+        "observed_rate": 0.3412,
+        "customers": 296002
+      },
+      {
+        "bin": 2,
+        "mean_predicted": 0.5773,
+        "observed_rate": 0.4629,
+        "customers": 296001
+      },
+      {
+        "bin": 3,
+        "mean_predicted": 0.6565,
+        "observed_rate": 0.566,
+        "customers": 296002
+      },
+      {
+        "bin": 4,
+        "mean_predicted": 0.7235,
+        "observed_rate": 0.6498,
+        "customers": 296000
+      },
+      {
+        "bin": 5,
+        "mean_predicted": 0.7787,
+        "observed_rate": 0.7298,
+        "customers": 296003
+      },
+      {
+        "bin": 6,
+        "mean_predicted": 0.8249,
+        "observed_rate": 0.794,
+        "customers": 296002
+      },
+      {
+        "bin": 7,
+        "mean_predicted": 0.8627,
+        "observed_rate": 0.8423,
+        "customers": 296001
+      },
+      {
+        "bin": 8,
+        "mean_predicted": 0.8969,
+        "observed_rate": 0.8932,
+        "customers": 296002
+      },
+      {
+        "bin": 9,
+        "mean_predicted": 0.9271,
+        "observed_rate": 0.9323,
+        "customers": 296002
+      }
+    ],
+    "mean_abs_log_odds_contribution": {
+      "visits_365d": 0.6161,
+      "recency_days": 0.2676,
+      "mean_gap_days": 0.1414,
+      "visits_180d": 0.11,
+      "distinct_articles_365d": 0.0854,
+      "online_share": 0.0723,
+      "age": 0.059,
+      "tenure_days": 0.0484,
+      "last_gap_days": 0.0325,
+      "items_365d": 0.0246,
+      "spend_30d": 0.0167,
+      "share_divided": 0.0164,
+      "spend_trend": 0.0154,
+      "spend_90d": 0.0154,
+      "mean_price": 0.0131,
+      "share_ladieswear": 0.012,
+      "share_kids": 0.0101,
+      "visits_90d": 0.0096,
+      "items_per_visit": 0.0091,
+      "avg_visit_spend": 0.0084,
+      "spend_365d": 0.0083,
+      "share_menswear": 0.0075,
+      "share_sport": 0.0044,
+      "visit_trend": 0.0039,
+      "visits_30d": 0.0025
+    }
+  },
+  "clv": {
+    "calibration_end": "2020-03-26",
+    "holdout_days": 181,
+    "customers": 1188776,
+    "params": {
+      "bg_nbd": {
+        "r": 0.5830762334827447,
+        "alpha": 6.413215422774883,
+        "a": 0.13392416726111017,
+        "b": 2.096120512077661
+      },
+      "gamma_gamma": {
+        "p": 2.492730076706346,
+        "q": 3.770315236328189,
+        "v": 0.10833581051893636
+      }
+    },
+    "holdout_results": {
+      "bg_nbd_gamma_gamma": {
+        "visits": {
+          "mae": 1.28108,
+          "rmse": 2.13162,
+          "correlation": 0.7101,
+          "total_predicted": 2098390.6,
+          "total_actual": 1956664.0
+        },
+        "spend": {
+          "mae": 0.13928,
+          "rmse": 0.27262,
+          "correlation": 0.6685,
+          "total_predicted": 204120.3,
+          "total_actual": 190190.6
+        }
+      },
+      "previous_period": {
+        "visits": {
+          "mae": 1.30804,
+          "rmse": 2.28353,
+          "correlation": 0.6903,
+          "total_predicted": 2091714.0,
+          "total_actual": 1956664.0
+        },
+        "spend": {
+          "mae": 0.14521,
+          "rmse": 0.30085,
+          "correlation": 0.6361,
+          "total_predicted": 198736.0,
+          "total_actual": 190190.6
+        }
+      },
+      "lifetime_average_rate": {
+        "visits": {
+          "mae": 1.98943,
+          "rmse": 3.57802,
+          "correlation": 0.4995,
+          "total_predicted": 3414576.5,
+          "total_actual": 1956664.0
+        },
+        "spend": {
+          "mae": 0.20941,
+          "rmse": 0.4772,
+          "correlation": 0.4546,
+          "total_predicted": 326894.9,
+          "total_actual": 190190.6
+        }
+      }
+    },
+    "spend_by_predicted_decile": [
+      {
+        "decile": 0,
+        "mean_predicted": 0.0155,
+        "mean_actual": 0.025
+      },
+      {
+        "decile": 1,
+        "mean_predicted": 0.0219,
+        "mean_actual": 0.0243
+      },
+      {
+        "decile": 2,
+        "mean_predicted": 0.0304,
+        "mean_actual": 0.0387
+      },
+      {
+        "decile": 3,
+        "mean_predicted": 0.0446,
+        "mean_actual": 0.0529
+      },
+      {
+        "decile": 4,
+        "mean_predicted": 0.0647,
+        "mean_actual": 0.0678
+      },
+      {
+        "decile": 5,
+        "mean_predicted": 0.0934,
+        "mean_actual": 0.0964
+      },
+      {
+        "decile": 6,
+        "mean_predicted": 0.134,
+        "mean_actual": 0.127
+      },
+      {
+        "decile": 7,
+        "mean_predicted": 0.1937,
+        "mean_actual": 0.1807
+      },
+      {
+        "decile": 8,
+        "mean_predicted": 0.3102,
+        "mean_actual": 0.2874
+      },
+      {
+        "decile": 9,
+        "mean_predicted": 0.8088,
+        "mean_actual": 0.6998
+      }
+    ]
+  },
+  "segments": {
+    "silhouette_by_k": {
+      "5": 0.19265510141849518,
+      "6": 0.16901209950447083,
+      "7": 0.19123147428035736,
+      "8": 0.1783527284860611
+    },
+    "chosen_k": 5,
+    "profiles": [
+      {
+        "segment_id": 0,
+        "segment_name": "Occasional womenswear shoppers",
+        "customers": 436354,
+        "median_spend_365d": 0.1263999939,
+        "median_visits_365d": 2.0,
+        "mean_online_share": 0.6650000215,
+        "mean_churn_probability": 0.7561
+      },
+      {
+        "segment_id": 1,
+        "segment_name": "Occasional Divided (young fashion) shoppers",
+        "customers": 188462,
+        "median_spend_365d": 0.1101000011,
+        "median_visits_365d": 2.0,
+        "mean_online_share": 0.7358000278,
+        "mean_churn_probability": 0.7485
+      },
+      {
+        "segment_id": 2,
+        "segment_name": "Regular menswear shoppers",
+        "customers": 53484,
+        "median_spend_365d": 0.1625999957,
+        "median_visits_365d": 2.0,
+        "mean_online_share": 0.5460000038,
+        "mean_churn_probability": 0.6776
+      },
+      {
+        "segment_id": 3,
+        "segment_name": "High-value multi-category shoppers",
+        "customers": 281905,
+        "median_spend_365d": 0.769200027,
+        "median_visits_365d": 8.0,
+        "mean_online_share": 0.6805999875,
+        "mean_churn_probability": 0.32
+      },
+      {
+        "segment_id": 4,
+        "segment_name": "Occasional sportswear shoppers",
+        "customers": 33287,
+        "median_spend_365d": 0.1228,
+        "median_visits_365d": 1.0,
+        "mean_online_share": 0.6916999817,
+        "mean_churn_probability": 0.7598
+      }
+    ]
+  },
+  "scores": {
+    "customers": 1371980,
+    "active_customers": 993492,
+    "risk_bands": {
+      "high": 408047,
+      "lapsed": 378488,
+      "low": 295952,
+      "medium": 289493
+    },
+    "mean_churn_probability": 0.6268,
+    "total_clv_180d": 212005.4
+  },
+  "campaign_example": {
+    "cost_per_contact": 0.005,
+    "uplift": 0.1,
+    "budget": 500.0,
+    "contacted": 100000,
+    "spend": 500.0,
+    "expected_value_saved": 2300.36,
+    "expected_net": 1800.36,
+    "roi": 3.6007,
+    "curve": [
+      {
+        "contacted": 49674,
+        "spend": 248.37,
+        "expected_value_saved": 1427.012,
+        "expected_net": 1178.642
+      },
+      {
+        "contacted": 99349,
+        "spend": 496.745,
+        "expected_value_saved": 2290.433,
+        "expected_net": 1793.688
+      },
+      {
+        "contacted": 149023,
+        "spend": 745.115,
+        "expected_value_saved": 2982.387,
+        "expected_net": 2237.272
+      },
+      {
+        "contacted": 198698,
+        "spend": 993.49,
+        "expected_value_saved": 3579.854,
+        "expected_net": 2586.364
+      },
+      {
+        "contacted": 248373,
+        "spend": 1241.865,
+        "expected_value_saved": 4108.706,
+        "expected_net": 2866.841
+      },
+      {
+        "contacted": 298047,
+        "spend": 1490.235,
+        "expected_value_saved": 4582.609,
+        "expected_net": 3092.374
+      },
+      {
+        "contacted": 347722,
+        "spend": 1738.61,
+        "expected_value_saved": 5010.342,
+        "expected_net": 3271.732
+      },
+      {
+        "contacted": 397396,
+        "spend": 1986.98,
+        "expected_value_saved": 5399.328,
+        "expected_net": 3412.348
+      },
+      {
+        "contacted": 447071,
+        "spend": 2235.355,
+        "expected_value_saved": 5754.169,
+        "expected_net": 3518.814
+      },
+      {
+        "contacted": 496746,
+        "spend": 2483.73,
+        "expected_value_saved": 6078.357,
+        "expected_net": 3594.627
+      },
+      {
+        "contacted": 546420,
+        "spend": 2732.1,
+        "expected_value_saved": 6375.095,
+        "expected_net": 3642.995
+      },
+      {
+        "contacted": 596095,
+        "spend": 2980.475,
+        "expected_value_saved": 6646.985,
+        "expected_net": 3666.51
+      },
+      {
+        "contacted": 645769,
+        "spend": 3228.845,
+        "expected_value_saved": 6894.657,
+        "expected_net": 3665.812
+      },
+      {
+        "contacted": 695444,
+        "spend": 3477.22,
+        "expected_value_saved": 7119.374,
+        "expected_net": 3642.154
+      },
+      {
+        "contacted": 745119,
+        "spend": 3725.595,
+        "expected_value_saved": 7322.749,
+        "expected_net": 3597.154
+      },
+      {
+        "contacted": 794793,
+        "spend": 3973.965,
+        "expected_value_saved": 7506.451,
+        "expected_net": 3532.486
+      },
+      {
+        "contacted": 844468,
+        "spend": 4222.34,
+        "expected_value_saved": 7668.735,
+        "expected_net": 3446.395
+      },
+      {
+        "contacted": 894142,
+        "spend": 4470.71,
+        "expected_value_saved": 7809.137,
+        "expected_net": 3338.427
+      },
+      {
+        "contacted": 943817,
+        "spend": 4719.085,
+        "expected_value_saved": 7930.915,
+        "expected_net": 3211.83
+      },
+      {
+        "contacted": 993492,
+        "spend": 4967.46,
+        "expected_value_saved": 8020.717,
+        "expected_net": 3053.257
+      }
+    ]
+  },
+  "timings_seconds": {
+    "snapshot 2019-10-01: 996,436 active customers": 7.5,
+    "snapshot 2019-11-01: 985,172 active customers": 8.5,
+    "snapshot 2019-12-01: 980,857 active customers": 8.6,
+    "snapshot 2020-01-01: 976,801 active customers": 12.3,
+    "snapshot 2020-02-01: 971,402 active customers": 13.3,
+    "snapshot 2020-03-01: 962,257 active customers": 15.6,
+    "snapshot 2020-04-01: 966,487 active customers": 15.3,
+    "snapshot 2020-05-01: 982,872 active customers": 18.3,
+    "snapshot 2020-06-01: 987,522 active customers": 20.7,
+    "snapshot 2020-07-01: 989,623 active customers": 22.3,
+    "churn evaluation": 258.2,
+    "final churn model": 55.9,
+    "lifetime value holdout": 24.7,
+    "score churn for 993,492 active customers": 239.8,
+    "lifetime value": 24.8,
+    "segments": 44.9,
+    "write customer scores": 3.4
+  },
+  "total_seconds": 794.9,
+  "package_versions": {
+    "xgboost": "3.4.1",
+    "optuna": "4.9.0",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1"
+  }
+}

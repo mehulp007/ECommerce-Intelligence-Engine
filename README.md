@@ -17,8 +17,8 @@ Next.js frontend. It runs entirely on a local PC; no cloud service is required.
 | 0 | Repository preparation | Done |
 | 1 | Data foundation: H&M ingestion, DuckDB warehouse, integrity checks, thumbnails | Done |
 | 2 | Two-stage recommender (candidate generation + LightGBM ranker, MAP@12) | Done |
-| 3 | FashionCLIP image and text embeddings, similar-item and text search | **Done** |
-| 4 | Churn, lifetime value, segments, campaign simulator | Planned |
+| 3 | FashionCLIP image and text embeddings, similar-item and text search | Done |
+| 4 | Churn, lifetime value, segments, campaign simulator | **Done** |
 | 5 | FastAPI v2 | Planned |
 | 6 | Gemini analyst copilot | Planned |
 | 7 | Next.js frontend | Planned |
@@ -160,6 +160,108 @@ modality gap) raised photo-only precision@10 from 0.21 to 0.93; blending in the 
 indicative rather than a held-out estimate.
 
 
+## Customer intelligence (Phase 4)
+
+Four models turn purchase history into retention decisions for every customer as of 23 Sep 2020.
+
+```mermaid
+flowchart LR
+    TX["Purchases before<br/>the as-of date"] --> S["Monthly snapshots<br/>25 point-in-time features"]
+    S --> C["Churn: XGBoost + calibration<br/>P(no purchase in 60 days)"]
+    TX --> V["Lifetime value<br/>BG/NBD + Gamma-Gamma"]
+    S --> G["Segments: K-Means on<br/>behaviour + visual taste"]
+    C & V --> K["Campaign simulator<br/>P(churn) x value x uplift - cost"]
+    C & V & G --> O["Scores for 1.37M customers<br/>with top-3 churn drivers"]
+```
+
+### Churn (60-day inactivity proxy)
+
+A customer counts as active at snapshot date T if they bought anything in the year before T. The label is
+1 if they then buy nothing for 60 days. This is an inactivity proxy, not a closed account. Features use
+only purchases before T, and a test inserts future purchases to prove they change nothing. Customer
+attributes recorded at the end of the dataset (club status, newsletter flags) are excluded because
+they would leak the future into older snapshots.
+
+The split moves forward in time: train on snapshots from Oct 2019 to Feb 2020 (a 40% customer sample of
+1.96M rows), calibrate on Mar–Apr 2020, and test on every active customer in May–Jul 2020 (2.96M
+customer-months).
+
+| Model (test, May–Jul 2020) | ROC AUC | Average precision | Brier score |
+|---|---|---|---|
+| **XGBoost, Optuna-tuned (25 trials), calibrated** | **0.795** | **0.857** | 0.178 |
+| XGBoost, default settings | 0.795 | 0.856 | 0.178 |
+| Logistic regression, all features | 0.789 | 0.851 | 0.180 |
+| Logistic regression, recency only | 0.701 | 0.792 | 0.209 |
+| XGBoost, tuned, uncalibrated | 0.795 | 0.857 | 0.175 |
+
+ROC AUC is stable across test months (0.789, 0.798, 0.801). Purchase frequency, recency, and the usual
+gap between visits drive the model most.
+
+- **Tuning barely helps.** The engineered features carry the signal, not the hyperparameters.
+- **COVID distorted calibration.** The calibration months, Mar–Apr 2020, were store-closure months with
+  70% inactivity. Calibrating on them made test probabilities slightly worse (Brier 0.178 vs 0.175
+  uncalibrated) and overstated risk for low-risk customers (predicted 0.27 vs observed 0.16 in the lowest
+  decile). The production model is therefore retrained on Oct 2019–May 2020 and calibrated on Jun–Jul
+  2020, the months closest to normal trading.
+- **Explanations.** Each customer's three strongest drivers are exact TreeSHAP contributions to the raw
+  log-odds, computed on the GPU (3.1x faster than CPU, identical to 1e-5). They explain the uncalibrated
+  model, not the calibrated probability.
+
+### Lifetime value (next 180 days)
+
+BG/NBD (purchase-day frequency and dropout) and Gamma-Gamma (spend per visit) are implemented from the
+published likelihoods (Fader, Hardie and Lee, 2005) and fitted by maximum likelihood on 1.19M customers
+in about 20 seconds. A Monte Carlo test checks the closed-form expectation against a simulation of the
+model. The model was checked by fitting on data before 26 Mar 2020 and predicting each customer's
+spend through 22 Sep 2020:
+
+| Model | Spend MAE | Correlation | Total predicted vs actual |
+|---|---|---|---|
+| **BG/NBD + Gamma-Gamma** | **0.139** | **0.668** | 204k vs 190k (+7.3%) |
+| Same as the previous 181 days | 0.145 | 0.636 | 199k vs 190k (+4.5%) |
+| Lifetime average rate | 0.209 | 0.455 | 327k vs 190k (+72%) |
+
+The probabilistic model ranks and sizes customers best. It overstates the total by 7% over a period
+that began with COVID lockdowns, and in the top decile it predicts 0.81 against 0.70 actual. Values are
+in H&M's normalized price units.
+
+### Segments
+
+K-Means groups the 993,492 active customers using spend, visits, recency, channel, category mix, age, and
+an 8-component summary of their visual style (from the Phase 3 embeddings). Five clusters scored the best
+silhouette (0.193 among 5 to 8; customer behaviour is continuous, so clusters overlap). Names are
+generated from the data. A category names a segment only when it is both over-represented and at least
+30% of that segment's purchases.
+
+| Segment | Customers | Median visits / year | Online share | Mean churn risk |
+|---|---|---|---|---|
+| Occasional womenswear shoppers | 436,354 | 2 | 67% | 0.76 |
+| High-value multi-category shoppers | 281,905 | 8 | 68% | 0.32 |
+| Occasional Divided (young fashion) shoppers | 188,462 | 2 | 74% | 0.75 |
+| Regular menswear shoppers | 53,484 | 2 | 55% | 0.68 |
+| Occasional sportswear shoppers | 33,287 | 1 | 69% | 0.76 |
+
+The other 378,488 customers bought nothing in the 12 months before 23 Sep 2020 and are labelled lapsed.
+
+### Campaign simulator
+
+Contacting a customer with inactivity probability p and 180-day value V is worth p x uplift x V - cost in
+expectation. The simulator contacts customers in order of that value until the budget runs out. It
+stops early once a contact is no longer worth its cost.
+
+With a cost of 0.005 per contact, a 10% uplift, and a budget of 500, it contacts 100,000 customers and
+expects to save 2,300 value units, a net 1,800 (ROI 360%). Most contacts go to high-value shoppers:
+their churn risk is lower, but far more value is at stake. Expected net value peaks at about 600,000
+contacts and then declines. **The uplift is an assumption, not a measurement.** The data contains no
+campaign experiments, so a real deployment would estimate uplift with an A/B test.
+
+### Output
+
+`data/serving/customer_scores.parquet` holds one row per customer (1,371,980). Each row has the churn
+probability and risk band (low < 0.5 <= medium < 0.75 <= high, or lapsed), the top three drivers, the
+segment, P(alive), expected visits, spend per visit, and 180-day value. The full run takes 13 minutes:
+snapshots and churn evaluation 5 minutes, scoring 4 minutes.
+
 ## Run it on your PC
 
 These steps use **Windows PowerShell** and **Python 3.12**. Run one command at a time.
@@ -237,7 +339,19 @@ This evaluates on the held-out week, writes `reports/recommender_metrics.json`, 
 Add `--no-ablations` to skip the nine comparison models (about 12 minutes faster) or `--no-score` to
 skip scoring all customers.
 
-### 6. Explore the warehouse
+### 6. Score customers and plan a campaign
+
+```powershell
+.\.venv\Scripts\eie.exe customers train
+.\.venv\Scripts\eie.exe customers campaign --budget 500 --cost 0.005 --uplift 0.1
+```
+
+`train` evaluates churn and lifetime value, fits segments, writes `reports/customer_metrics.json`, and
+scores every customer into `data/serving/customer_scores.parquet` (about 13 minutes). `campaign` reads
+those scores and prints who to contact and the expected return. Add `--trials 5` to `train` for a
+faster, less thorough tuning run.
+
+### 7. Explore the warehouse
 
 ```powershell
 .\.venv\Scripts\python.exe -c "import duckdb; print(duckdb.connect('data/warehouse.duckdb', read_only=True).sql('SELECT index_group_name, count(*) AS purchases FROM sales GROUP BY ALL ORDER BY purchases DESC'))"
@@ -251,9 +365,10 @@ skip scoring all customers.
 | `src/ecommerce_intelligence/data/` | Download, ingestion, warehouse, quality checks, thumbnails |
 | `src/ecommerce_intelligence/recsys/` | Candidate generators, ALS, style profiles, features, LightGBM ranker, metrics, pipeline |
 | `src/ecommerce_intelligence/search/` | FashionCLIP encoder, embeddings, FAISS index, search benchmark |
+| `src/ecommerce_intelligence/customers/` | Snapshot features, churn, lifetime value, segments, campaign simulator, pipeline |
 | `src/ecommerce_intelligence/evaluation/` | Shared metric helpers |
 | `tests/` | Tests that run on a miniature synthetic H&M archive |
-| `reports/` | Data-quality, thumbnail, recommender, and search-quality reports |
+| `reports/` | Data-quality, thumbnail, recommender, search-quality, and customer reports |
 | `data/`, `artifacts/` | Local data and generated outputs (Git-ignored) |
 
 ## Checks
@@ -277,5 +392,10 @@ real dataset.
 - **Sales channels.** `sales_channel_id = 2` is interpreted as online and `1` as store; the dataset does
   not document these codes.
 - The data is historical (2018–2020), not live.
+- **Churn is an inactivity proxy** (no purchase for 60 days), not a confirmed account closure, and
+  SHAP drivers explain the raw model, not the calibrated probability.
+- **Lifetime value sees only the dataset window.** Customers active before September 2018 look newer
+  than they are.
+- **Campaign uplift is an assumed input**; no campaign or experiment data exists in this dataset.
 - Recommendations can include articles a customer already bought; these are labelled `buy_again`
   because repeat purchases are common in fashion.
