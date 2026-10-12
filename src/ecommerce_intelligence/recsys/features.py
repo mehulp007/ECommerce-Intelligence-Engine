@@ -18,6 +18,8 @@ SOURCE_FEATURES = [
     "cooc_rank",
     "als_score",
     "als_rank",
+    "style_score",
+    "style_rank",
     "n_sources",
 ]
 ARTICLE_FEATURES = [
@@ -64,6 +66,7 @@ PAIR_FEATURES = [
     "garment_share",
     "colour_share",
     "price_ratio",
+    "style_similarity",
 ]
 FEATURES = (
     SOURCE_FEATURES
@@ -84,7 +87,9 @@ def _since(as_of: str, days: int) -> str:
     return f"purchase_date >= DATE '{as_of}' - INTERVAL {days} DAY"
 
 
-def build_features(con: duckdb.DuckDBPyConnection, as_of: str) -> pd.DataFrame:
+def build_features(
+    con: duckdb.DuckDBPyConnection, as_of: str, style=None
+) -> pd.DataFrame:
     """Join statistics onto the `candidates` table and return a feature frame."""
     before = f"purchase_date < DATE '{as_of}'"
     con.execute(f"""
@@ -177,11 +182,13 @@ def build_features(con: duckdb.DuckDBPyConnection, as_of: str) -> pd.DataFrame:
         SELECT c.customer_idx, c.article_idx,
                c.repurchase_rank, c.popular_rank, c.age_popular_rank,
                c.cooc_score, c.cooc_rank, c.als_score, c.als_rank,
+               c.style_score, c.style_rank,
                (c.repurchase_rank IS NOT NULL)::INTEGER
                  + (c.popular_rank IS NOT NULL)::INTEGER
                  + (c.age_popular_rank IS NOT NULL)::INTEGER
                  + (c.cooc_rank IS NOT NULL)::INTEGER
-                 + (c.als_rank IS NOT NULL)::INTEGER AS n_sources,
+                 + (c.als_rank IS NOT NULL)::INTEGER
+                 + (c.style_rank IS NOT NULL)::INTEGER AS n_sources,
                coalesce(s.sales_1w, 0) AS sales_1w,
                coalesce(s.sales_2w, 0) AS sales_2w,
                coalesce(s.sales_4w, 0) AS sales_4w,
@@ -223,6 +230,13 @@ def build_features(con: duckdb.DuckDBPyConnection, as_of: str) -> pd.DataFrame:
         {share_joins}
         ORDER BY c.customer_idx, c.article_idx
         """).df()
+    frame["style_similarity"] = (
+        style.similarity(
+            frame["customer_idx"].to_numpy(), frame["article_idx"].to_numpy()
+        )
+        if style is not None
+        else np.nan
+    )
     for column in FEATURES:
         if column not in CATEGORICAL_FEATURES:
             frame[column] = frame[column].astype(np.float32)

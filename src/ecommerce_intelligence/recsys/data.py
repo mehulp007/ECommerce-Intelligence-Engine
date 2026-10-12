@@ -7,6 +7,20 @@ import duckdb
 from ecommerce_intelligence.data.duck import connect, sql_path
 from ecommerce_intelligence.paths import ProjectPaths
 
+# Category codes are re-numbered 0..n-1 so tree models see compact categories.
+CATEGORY_CODES = ", ".join(
+    f"(dense_rank() OVER (ORDER BY a.{column}) - 1)::INTEGER AS {column}"
+    for column in (
+        "product_type_no",
+        "graphical_appearance_no",
+        "colour_group_code",
+        "perceived_colour_master_id",
+        "department_no",
+        "index_group_no",
+        "section_no",
+        "garment_group_no",
+    )
+)
 AGE_BUCKET_SQL = """
     CASE
         WHEN age IS NULL THEN 0
@@ -51,9 +65,7 @@ def open_context(paths: ProjectPaths) -> duckdb.DuckDBPyConnection:
     con.execute(f"""
         CREATE TABLE article_attrs AS
         SELECT m.article_idx, a.product_code::INTEGER AS product_code,
-               a.product_type_no, a.graphical_appearance_no, a.colour_group_code,
-               a.perceived_colour_master_id, a.department_no, a.index_group_no,
-               a.section_no, a.garment_group_no
+               {CATEGORY_CODES}
         FROM read_parquet({sql_path(paths.table("articles"))}) AS a
         JOIN article_map AS m USING (article_id)
         """)

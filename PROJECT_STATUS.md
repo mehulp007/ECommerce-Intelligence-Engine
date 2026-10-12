@@ -4,7 +4,7 @@ Last updated: 2026-10-10
 
 ## Current phase
 
-**Phase 2 — Two-stage recommender: complete.** Phase 3 (image and text embeddings) is next.
+**Phase 3 — Image and text embeddings, product search: complete.** Phase 4 (churn, lifetime value, segments, campaign simulator) is next.
 
 ## Phase log
 
@@ -13,7 +13,7 @@ Last updated: 2026-10-10
 | 0 | Repository preparation, `v1-uci` tag, ignore rules, environment template | Complete |
 | 1 | H&M download, typed Parquet, DuckDB warehouse, integrity report, WebP thumbnails, `eie` CLI | Complete |
 | 2 | Candidate generation + LightGBM ranker, MAP@12 on the final week, baselines and ablations | Complete |
-| 3 | FashionCLIP image/text embeddings, FAISS similar-item and text search | Planned |
+| 3 | FashionCLIP image/text embeddings, FAISS similar-item and text search | Complete |
 | 4 | Churn (inactivity proxy), lifetime value, segments, campaign simulator | Planned |
 | 5 | FastAPI v2 | Planned |
 | 6 | Gemini analyst copilot | Planned |
@@ -44,8 +44,22 @@ Last updated: 2026-10-10
 | Production output | 16,463,760 rows: top 12 for all 1,371,980 customers as of 2020-09-23 |
 | Runtime | 20 minutes end to end, including eight ablation models |
 
-Follow-up for Phase 3: re-encode sparse categorical codes (some are -1 or very large) to consecutive
-integers to remove LightGBM warnings, then re-measure with image-embedding candidates.
+Phase 2's sparse categorical codes were re-encoded to consecutive integers in Phase 3; LightGBM now
+reports no warnings.
+
+## Phase 3 measured results
+
+| Item | Value |
+|---|---|
+| Embeddings | FashionCLIP (MIT), 512-d; 105,542 descriptions in 48 s and 105,100 photos in 8.6 min on an RTX 4060 Laptop GPU; 207 MB |
+| Cross-modal sanity check | A photo's nearest description is its own for 60.2% of 2,022 sampled products |
+| Text search precision@10 | 0.95 on 12 labelled queries after mean-centring each modality (0.22 before); weights chosen on the same queries |
+| Recommender MAP@12 | 0.0346 (Phase 2: 0.0344), 48 features, ~133 candidates per customer, candidate recall 14.4% |
+| Style signal | `style_similarity` is 11th of 48 features by gain; the style candidate source alone does not help (removing it: 0.0348) |
+| Production output | 16,463,760 rows for 1,371,980 customers; full run 33 minutes |
+
+Possible follow-up: drop the similar-style candidate source (keep the feature) and confirm on a new
+validation week rather than the held-out week.
 
 ## Known data facts
 

@@ -13,6 +13,7 @@ import pandas as pd
 
 from ecommerce_intelligence.recsys import config
 from ecommerce_intelligence.recsys.als import AlsModel
+from ecommerce_intelligence.recsys.style import StyleModel
 
 
 def _window(as_of: str, days: int) -> str:
@@ -173,6 +174,7 @@ def build_candidates(
     con: duckdb.DuckDBPyConnection,
     as_of: str,
     als_model: AlsModel,
+    style_model: StyleModel,
     sources: tuple[str, ...] = config.SOURCES,
 ) -> None:
     """Union every source into `candidates` with one row per pair."""
@@ -182,6 +184,7 @@ def build_candidates(
         "age_popular": lambda: age_popular(con, as_of),
         "cooc": lambda: cooccurrence(con, as_of),
         "als": lambda: collaborative(con, as_of, als_model),
+        "style": lambda: style_model.candidates(con, as_of),
     }
     for source in sources:
         builders[source]()
@@ -195,6 +198,7 @@ def build_candidates(
         "age_popular": ["age_popular_rank"],
         "cooc": ["cooc_score", "cooc_rank"],
         "als": ["als_score", "als_rank"],
+        "style": ["style_score", "style_rank"],
     }
     select = []
     joins = []

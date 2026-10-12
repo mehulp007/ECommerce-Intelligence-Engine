@@ -16,8 +16,8 @@ Next.js frontend. It runs entirely on a local PC; no cloud service is required.
 |---|---|---|
 | 0 | Repository preparation | Done |
 | 1 | Data foundation: H&M ingestion, DuckDB warehouse, integrity checks, thumbnails | Done |
-| 2 | Two-stage recommender (candidate generation + LightGBM ranker, MAP@12) | **Done** |
-| 3 | FashionCLIP image and text embeddings, similar-item and text search | Planned |
+| 2 | Two-stage recommender (candidate generation + LightGBM ranker, MAP@12) | Done |
+| 3 | FashionCLIP image and text embeddings, similar-item and text search | **Done** |
 | 4 | Churn, lifetime value, segments, campaign simulator | Planned |
 | 5 | FastAPI v2 | Planned |
 | 6 | Gemini analyst copilot | Planned |
@@ -60,11 +60,11 @@ flowchart LR
 Weekly purchase volume peaks in late June 2019 (563k rows) and falls to its lowest full week in mid-March
 2020 (184k rows) as COVID closed stores. Later phases treat this as a real distribution shift.
 
-## Two-stage recommender (Phase 2)
+## Two-stage recommender (Phases 2 and 3)
 
 The recommender predicts which articles each customer will buy next week. Like production
 recommenders at large retailers, it works in two stages: cheap **candidate generators** propose about
-100 articles per customer, then a **learned ranker** orders them.
+130 articles per customer, then a **learned ranker** orders them.
 
 ```mermaid
 flowchart LR
@@ -73,8 +73,9 @@ flowchart LR
     TX --> A["Popular in age group"]
     TX --> C["Bought together<br/>same-basket pairs"]
     TX --> M["Similar shoppers<br/>ALS matrix factorization"]
-    R & P & A & C & M --> U["~108 candidates per customer"]
-    U --> F["45 features<br/>article momentum, customer profile,<br/>customer-article affinity"]
+    TX --> S["Similar style<br/>FashionCLIP taste profile"]
+    R & P & A & C & M & S --> U["~133 candidates per customer"]
+    U --> F["48 features<br/>article momentum, customer profile,<br/>customer-article and visual affinity"]
     F --> L["LightGBM LambdaRank"]
     L --> T["Top 12 + reason"]
 ```
@@ -89,13 +90,14 @@ the metric of the original Kaggle competition.
 
 | Model | MAP@12 | Recall@12 |
 |---|---|---|
-| **Two-stage ranker** | **0.0344** | **5.67%** |
+| **Two-stage ranker (Phase 3)** | **0.0346** | **5.65%** |
+| Two-stage ranker (Phase 2, no image signal) | 0.0344 | 5.67% |
 | Buy again, then trending | 0.0257 | 3.89% |
 | Bought together, then trending | 0.0116 | 2.70% |
 | ALS (similar shoppers) only | 0.0112 | 2.01% |
 | Trending (global popularity) | 0.0088 | 2.29% |
 
-The ranker is **3.9x the popularity baseline** and **34% better than the strongest single
+The ranker is **4.0x the popularity baseline** and **35% better than the strongest single
 heuristic**. For context, the competition's winning private-leaderboard score was about 0.037 on a
 different, hidden week, so the comparison is indicative only.
 
@@ -103,27 +105,60 @@ different, hidden week, so the comparison is indicative only.
 
 | Removed | MAP@12 | Change |
 |---|---|---|
-| Buy-again candidates | 0.0279 | -18.7% |
-| Customer-article affinity features | 0.0311 | -9.5% |
-| Article features (momentum, price, category) | 0.0318 | -7.5% |
-| Bought-together candidates | 0.0337 | -2.0% |
-| Customer features | 0.0340 | -1.0% |
-| Trending candidates | 0.0341 | -0.7% |
-| ALS candidates | 0.0343 | -0.2% |
-| Age-group candidates | 0.0345 | +0.2% (noise) |
+| Customer-article affinity features (incl. visual similarity) | 0.0301 | -13.0% |
+| Buy-again candidates | 0.0306 | -11.5% |
+| Article features (momentum, price, category) | 0.0319 | -7.8% |
+| Customer features | 0.0335 | -3.4% |
+| Age-group candidates | 0.0340 | -2.0% |
+| Bought-together candidates | 0.0340 | -1.7% |
+| ALS candidates | 0.0342 | -1.2% |
+| Trending candidates | 0.0345 | -0.5% |
+| Similar-style candidates | 0.0348 | +0.5% |
 
 Repeat purchases dominate fashion shopping, and personal affinity (how recently the customer bought
-the article, how often they buy that product family and garment type) is the most informative feature
-group. The two popularity sources overlap heavily, and ALS adds little beyond the other sources;
-Phase 3 adds image-embedding candidates as a stronger content signal.
+the article, how often they buy that product family and garment type, and how close it is to their
+visual taste) is the most informative feature group. The image signal helps as a **ranking feature**:
+`style_similarity` is the 11th of 48 features by gain, and removing the affinity group now costs 13.0%
+instead of 9.5%. As a **candidate source** it does not help: its 25 extra candidates per customer add
+slightly more noise than buyers, so removing them scores 0.5% higher. The production model keeps the
+measured configuration rather than re-tuning on the held-out week.
 
 ### Production scoring
 
 The production ranker is retrained including the held-out week, then scores every customer as of
-23 Sep 2020: **16,463,760 recommendations for all 1,371,980 customers** in 9.5 minutes, each with a
-reason (`buy_again`, `bought_together`, `similar_shoppers`, `popular_in_age_group`, `trending`).
-Recommendations cover 21.6% of the catalog. The full run, including evaluation and eight ablation
-models, takes 20 minutes on an i7-14650HX with 16 GB RAM.
+23 Sep 2020: **16,463,760 recommendations for all 1,371,980 customers** in 12 minutes, each with a
+reason (`buy_again`, `bought_together`, `similar_style`, `similar_shoppers`, `popular_in_age_group`,
+`trending`). Recommendations cover 19.6% of the catalog. The full run, including evaluation and nine
+ablation models, takes 33 minutes on an i7-14650HX with 16 GB RAM.
+
+## Visual and natural-language product search (Phase 3)
+
+Every product photo and description is embedded with
+[FashionCLIP](https://huggingface.co/patrickjohncyh/fashion-clip) (MIT license), a CLIP ViT-B/32
+model fine-tuned on 800k fashion products. The 512-dimensional vectors drive three features:
+
+- **Find similar**: nearest photos by cosine similarity (FAISS exact search). For a black strap top,
+  the six nearest products are all black vest tops with similarity 0.96-0.97.
+- **Text search**: a query such as "red floral summer dress" is embedded by the text tower and scored
+  against both photo and description (70% / 30%).
+- **Visual taste**: each customer's recent purchases are averaged into a style profile used by the
+  recommender above.
+
+| Item | Result |
+|---|---|
+| Descriptions embedded | 105,542 in 48 s (RTX 4060 Laptop GPU, fp16) |
+| Photos embedded | 105,100 in 8.6 minutes |
+| Storage | 207 MB (float16) |
+| Photo matches its own description, among 2,022 sampled products | 60.2% (chance: 0.05%) |
+| Text search precision@10, 12 labelled queries | **0.95** (0.22 before the fix below) |
+
+**Fixing "hub" products.** Raw CLIP text-to-photo scores were dominated by a few products, such as
+sunglasses and earrings, that sit close to every query, so "black leather ankle boots" returned
+sandals. Subtracting each modality's mean embedding before comparing (a standard fix for CLIP's
+modality gap) raised photo-only precision@10 from 0.21 to 0.93; blending in the description gives
+0.95. The weights were chosen on this same 12-query benchmark (`eie search evaluate`), so the number is
+indicative rather than a held-out estimate.
+
 
 ## Run it on your PC
 
@@ -136,7 +171,8 @@ From the project folder (the one containing `pyproject.toml`):
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -e ".[data,train,recsys,dev]"
+.\.venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu128
+.\.venv\Scripts\python.exe -m pip install -e ".[data,train,recsys,search,dev]"
 ```
 
 ### 2. Get access to the data
@@ -177,7 +213,20 @@ This runs five steps, which can also be run individually:
 Optional settings: `EIE_DUCKDB_MEMORY` (default `6GB`) and `EIE_DUCKDB_THREADS` limit DuckDB's resource
 use.
 
-### 4. Train the recommender
+### 4. Embed and search the catalog
+
+```powershell
+.\.venv\Scripts\eie.exe search embed
+.\.venv\Scripts\eie.exe search query "red floral summer dress"
+.\.venv\Scripts\eie.exe search similar 0108775015
+.\.venv\Scripts\eie.exe search evaluate
+```
+
+`embed` downloads FashionCLIP (about 600 MB) on first use and writes `data/embeddings/`; it uses the
+GPU when PyTorch can see one and otherwise runs, more slowly, on the CPU. The recommender needs these
+embeddings. The PyTorch command above installs the CUDA 12.8 build for NVIDIA GPUs.
+
+### 5. Train the recommender
 
 ```powershell
 .\.venv\Scripts\eie.exe recsys train
@@ -185,10 +234,10 @@ use.
 
 This evaluates on the held-out week, writes `reports/recommender_metrics.json`, saves the ranker to
 `artifacts/recsys/`, and writes every customer's top 12 to `data/serving/recommendations.parquet`.
-Add `--no-ablations` to skip the eight comparison models (about 5 minutes faster) or `--no-score` to
+Add `--no-ablations` to skip the nine comparison models (about 12 minutes faster) or `--no-score` to
 skip scoring all customers.
 
-### 5. Explore the warehouse
+### 6. Explore the warehouse
 
 ```powershell
 .\.venv\Scripts\python.exe -c "import duckdb; print(duckdb.connect('data/warehouse.duckdb', read_only=True).sql('SELECT index_group_name, count(*) AS purchases FROM sales GROUP BY ALL ORDER BY purchases DESC'))"
@@ -200,10 +249,11 @@ skip scoring all customers.
 |---|---|
 | `src/ecommerce_intelligence/cli.py` | The `eie` command-line tool |
 | `src/ecommerce_intelligence/data/` | Download, ingestion, warehouse, quality checks, thumbnails |
-| `src/ecommerce_intelligence/recsys/` | Candidate generators, ALS, features, LightGBM ranker, metrics, pipeline |
+| `src/ecommerce_intelligence/recsys/` | Candidate generators, ALS, style profiles, features, LightGBM ranker, metrics, pipeline |
+| `src/ecommerce_intelligence/search/` | FashionCLIP encoder, embeddings, FAISS index, search benchmark |
 | `src/ecommerce_intelligence/evaluation/` | Shared metric helpers |
 | `tests/` | Tests that run on a miniature synthetic H&M archive |
-| `reports/` | Data-quality, thumbnail, and recommender reports |
+| `reports/` | Data-quality, thumbnail, recommender, and search-quality reports |
 | `data/`, `artifacts/` | Local data and generated outputs (Git-ignored) |
 
 ## Checks

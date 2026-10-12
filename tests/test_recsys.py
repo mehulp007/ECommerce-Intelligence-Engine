@@ -19,6 +19,9 @@ from ecommerce_intelligence.recsys.metrics import (
     recall_at_k,
 )
 from ecommerce_intelligence.recsys.pipeline import run
+from ecommerce_intelligence.recsys.style import StyleModel
+from ecommerce_intelligence.search.embeddings import ArticleEmbeddings
+from ecommerce_intelligence.search.encoder import normalize
 
 
 def test_average_precision_matches_competition_definition() -> None:
@@ -88,6 +91,13 @@ def _write_tables(root) -> ProjectPaths:
             "sales_channel_id": rng.integers(1, 3, rows).astype("int8"),
         }
     ).to_parquet(paths.table("transactions"))
+    has_image = np.arange(40) % 9 != 0
+    ArticleEmbeddings(
+        article_ids=np.array(articles),
+        image=np.where(has_image[:, None], normalize(rng.normal(size=(40, 16))), 0),
+        text=normalize(rng.normal(size=(40, 16))),
+        has_image=has_image,
+    ).save(paths.embeddings, {"model": "synthetic", "dim": 16})
     return paths
 
 
@@ -97,8 +107,10 @@ def test_features_use_only_purchases_before_as_of(tmp_path) -> None:
     con.register("t", pd.DataFrame({"customer_idx": np.arange(120, dtype=np.int32)}))
     con.execute("CREATE TABLE targets AS SELECT customer_idx FROM t")
     als = AlsModel.fit(con, as_of)
-    build_candidates(con, as_of, als)
-    before = build_features(con, as_of)
+    style = StyleModel.load(ProjectPaths(tmp_path), con)
+    style.prepare(con, as_of)
+    build_candidates(con, as_of, als, style)
+    before = build_features(con, as_of, style)
 
     # Purchases on or after the as-of date must not change anything.
     con.execute(f"""
@@ -108,8 +120,9 @@ def test_features_use_only_purchases_before_as_of(tmp_path) -> None:
         FROM tx LIMIT 2000
         """)
     assert (AlsModel.fit(con, as_of).user_items != als.user_items).nnz == 0
-    build_candidates(con, as_of, als)
-    after = build_features(con, as_of)
+    style.prepare(con, as_of)
+    build_candidates(con, as_of, als, style)
+    after = build_features(con, as_of, style)
 
     columns = ["customer_idx", "article_idx", *FEATURES]
     pd.testing.assert_frame_equal(before[columns], after[columns])
@@ -137,6 +150,8 @@ def test_pipeline_end_to_end_on_synthetic_data(tmp_path, monkeypatch) -> None:
     assert 0 <= ranker_map <= 1
     assert set(report["results"]) >= {"ranker", "popular", "als"}
     assert "without_als" in report["ablations"]
+    assert "without_style" in report["ablations"]
+    assert report["candidate_recall"]["style"] > 0
     assert report["candidate_recall"]["all"] >= report["candidate_recall"]["popular"]
 
     recs = pd.read_parquet(paths.root / "data" / "serving" / "recommendations.parquet")

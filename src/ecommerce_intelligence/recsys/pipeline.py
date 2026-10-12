@@ -26,6 +26,7 @@ from ecommerce_intelligence.recsys.features import (
     build_features,
 )
 from ecommerce_intelligence.recsys.metrics import map_at_k, recall_at_k
+from ecommerce_intelligence.recsys.style import StyleModel
 
 RANK_COLUMNS = {
     "repurchase": "repurchase_rank",
@@ -33,6 +34,7 @@ RANK_COLUMNS = {
     "age_popular": "age_popular_rank",
     "cooc": "cooc_rank",
     "als": "als_rank",
+    "style": "style_rank",
 }
 SOURCE_COLUMNS = {
     "repurchase": ["repurchase_rank"],
@@ -40,6 +42,7 @@ SOURCE_COLUMNS = {
     "age_popular": ["age_popular_rank"],
     "cooc": ["cooc_score", "cooc_rank"],
     "als": ["als_score", "als_rank"],
+    "style": ["style_score", "style_rank"],
 }
 INFERENCE_CHUNK = 50_000
 
@@ -73,10 +76,12 @@ def prepare_week(
     customers: np.ndarray,
     labels: dict[int, set[int]] | None,
     als: AlsModel,
+    style: StyleModel,
 ) -> pd.DataFrame:
     _set_targets(con, customers)
-    build_candidates(con, as_of.isoformat(), als)
-    frame = build_features(con, as_of.isoformat())
+    style.prepare(con, as_of.isoformat())
+    build_candidates(con, as_of.isoformat(), als, style)
+    frame = build_features(con, as_of.isoformat(), style)
     if labels is not None:
         frame = frame.merge(
             _label_frame(labels), on=["customer_idx", "article_idx"], how="left"
@@ -158,6 +163,7 @@ def run(
 
     tick = time.perf_counter()
     con = open_context(paths)
+    style = StyleModel.load(paths, con)
     validation = config.VALIDATION_START
     train_dates = config.training_as_of_dates(
         validation - config.WEEK, config.TRAINING_WEEKS
@@ -170,7 +176,7 @@ def run(
         labels[as_of] = week_labels(con, as_of.isoformat())
         customers = np.fromiter(labels[as_of], dtype=np.int32)
         als = AlsModel.fit(con, as_of.isoformat())
-        frame = prepare_week(con, as_of, customers, labels[as_of], als)
+        frame = prepare_week(con, as_of, customers, labels[as_of], als, style)
         # Training weeks only need customers with a purchased candidate; the
         # held-out week stays complete so every buyer counts in evaluation.
         frames[as_of] = frame if as_of == validation else ranker.with_positives(frame)
@@ -274,7 +280,7 @@ def run(
 
     scored = {}
     if score_all:
-        scored = score_customers(con, paths, final_model, log=log)
+        scored = score_customers(con, paths, final_model, style, log=log)
         tick = lap("score all customers", tick)
 
     report = {
@@ -306,6 +312,7 @@ def run(
             "age_popular": config.AGE_POPULAR_CANDIDATES,
             "cooc": config.COOC_CANDIDATES,
             "als": config.ALS_CANDIDATES,
+            "style": config.STYLE_CANDIDATES,
         },
         "scoring": scored,
         "timings_seconds": timings,
@@ -339,6 +346,7 @@ def score_customers(
     con: duckdb.DuckDBPyConnection,
     paths: ProjectPaths,
     model: lgb.Booster,
+    style: StyleModel,
     *,
     log: Log = print,
 ) -> dict:
@@ -356,7 +364,7 @@ def score_customers(
         """)
     for start in range(0, len(customers), INFERENCE_CHUNK):
         chunk = customers[start : start + INFERENCE_CHUNK]
-        frame = prepare_week(con, as_of, chunk, None, als)
+        frame = prepare_week(con, as_of, chunk, None, als, style)
         top = ranker.top_k(frame, model.predict(frame[FEATURES]), config.K)
         top = top.assign(reason=_reason(top))[
             ["customer_idx", "rank", "article_idx", "score", "reason"]

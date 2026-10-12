@@ -19,6 +19,10 @@ recsys_app = typer.Typer(
     help="Train, evaluate, and run the product recommender.", no_args_is_help=True
 )
 app.add_typer(recsys_app, name="recsys")
+search_app = typer.Typer(
+    help="Build product embeddings and search the catalog.", no_args_is_help=True
+)
+app.add_typer(search_app, name="search")
 
 
 def _paths() -> ProjectPaths:
@@ -132,6 +136,93 @@ def recsys_train(
     )
     typer.echo("Report: reports/recommender_metrics.json")
     _done("Recommender", started)
+
+
+@search_app.command("evaluate")
+def search_evaluate() -> None:
+    """Measure text-search precision@10 on a labelled query set."""
+    from ecommerce_intelligence.search.embeddings import ArticleEmbeddings
+    from ecommerce_intelligence.search.encoder import FashionClipEncoder
+    from ecommerce_intelligence.search.evaluate import evaluate
+    from ecommerce_intelligence.search.index import ProductIndex
+
+    paths = _paths()
+    index = ProductIndex(ArticleEmbeddings.load(paths.embeddings))
+    report = evaluate(paths, index, FashionClipEncoder())
+    for query, score in report["per_query"].items():
+        typer.echo(f"  {score:.1f}  {query}")
+    typer.echo(f"Precision@10 {report['precision_at_10']:.3f}")
+    typer.echo("Report: reports/search_quality.json")
+
+
+def _describe(hits) -> None:
+    import duckdb
+
+    paths = _paths()
+    ids = [hit.article_id for hit in hits]
+    with duckdb.connect(str(paths.warehouse), read_only=True) as con:
+        names = {
+            row[0]: row[1:]
+            for row in con.execute(
+                """
+                SELECT article_id, prod_name, colour_group_name, product_type_name
+                FROM articles WHERE list_contains(?, article_id)
+                """,
+                [ids],
+            ).fetchall()
+        }
+    for rank, hit in enumerate(hits, start=1):
+        name, colour, kind = names.get(hit.article_id, ("?", "?", "?"))
+        typer.echo(
+            f"{rank:>2}. {hit.article_id}  {hit.score:.3f}  {name} ({colour} {kind})"
+        )
+
+
+@search_app.command("embed")
+def search_embed(
+    device: str = typer.Option("", help="cuda or cpu (default: automatic)."),
+) -> None:
+    """Embed every article photo and description with FashionCLIP."""
+    from ecommerce_intelligence.search.embeddings import build_embeddings
+    from ecommerce_intelligence.search.encoder import FashionClipEncoder
+
+    started = time.perf_counter()
+    encoder = FashionClipEncoder(device=device or None)
+    typer.echo(f"Model {encoder.name} on {encoder.device}")
+    manifest = build_embeddings(_paths(), encoder, log=typer.echo)
+    typer.echo(
+        f"{manifest['articles']:,} articles, {manifest['with_image']:,} with photos; "
+        f"photo-to-own-description top-1 on a "
+        f"{manifest['sample_size']:,}-article sample: "
+        f"{manifest['image_to_text_top1_on_sample']:.1%}"
+    )
+    _done("Embeddings", started)
+
+
+@search_app.command("similar")
+def search_similar(
+    article_id: str, k: int = typer.Option(10, help="Results to show.")
+) -> None:
+    """Show the articles that look most like ARTICLE_ID."""
+    from ecommerce_intelligence.search.embeddings import ArticleEmbeddings
+    from ecommerce_intelligence.search.index import ProductIndex, SearchHit
+
+    article_id = article_id.zfill(10)
+    index = ProductIndex(ArticleEmbeddings.load(_paths().embeddings))
+    _describe([SearchHit(article_id, 1.0)])
+    typer.echo("Most similar:")
+    _describe(index.similar(article_id, k))
+
+
+@search_app.command("query")
+def search_query(text: str, k: int = typer.Option(10, help="Results to show.")) -> None:
+    """Find articles matching a natural-language description."""
+    from ecommerce_intelligence.search.embeddings import ArticleEmbeddings
+    from ecommerce_intelligence.search.encoder import FashionClipEncoder
+    from ecommerce_intelligence.search.index import ProductIndex
+
+    index = ProductIndex(ArticleEmbeddings.load(_paths().embeddings))
+    _describe(index.search_text(FashionClipEncoder(device="cpu"), text, k))
 
 
 if __name__ == "__main__":

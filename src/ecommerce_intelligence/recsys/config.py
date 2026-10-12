@@ -25,12 +25,16 @@ COOC_SEEDS = 20
 COOC_CANDIDATES = 40
 ALS_DAYS = 84
 ALS_CANDIDATES = 40
+STYLE_SEEDS = 20
+STYLE_ACTIVE_DAYS = 28
+STYLE_CANDIDATES = 40
 
-SOURCES = ("repurchase", "popular", "age_popular", "cooc", "als")
+SOURCES = ("repurchase", "popular", "age_popular", "cooc", "als", "style")
 # Reason shown to a shopper, in priority order when several sources agree.
 REASONS = {
     "repurchase": "buy_again",
     "cooc": "bought_together",
+    "style": "similar_style",
     "als": "similar_shoppers",
     "age_popular": "popular_in_age_group",
     "popular": "trending",

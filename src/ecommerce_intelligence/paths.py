@@ -43,6 +43,10 @@ class ProjectPaths:
         return self.root / "data" / "thumbnails"
 
     @property
+    def embeddings(self) -> Path:
+        return self.root / "data" / "embeddings"
+
+    @property
     def warehouse(self) -> Path:
         return self.root / "data" / "warehouse.duckdb"
 
