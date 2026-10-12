@@ -28,6 +28,10 @@ customers_app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(customers_app, name="customers")
+serve_app = typer.Typer(
+    help="Build serving tables and run the API.", no_args_is_help=True
+)
+app.add_typer(serve_app, name="serve")
 
 
 def _paths() -> ProjectPaths:
@@ -208,6 +212,33 @@ def customers_campaign(
         )
         for name, count in top.head(5).items():
             typer.echo(f"  {count:>9,}  {name}")
+
+
+@serve_app.command("prepare")
+def serve_prepare() -> None:
+    """Precompute customer history, product statistics, and dashboard aggregates."""
+    from ecommerce_intelligence.serving.prepare import build
+
+    started = time.perf_counter()
+    manifest = build(_paths(), log=typer.echo)
+    for name, info in manifest["files"].items():
+        typer.echo(f"  {name}: {info['bytes'] / 1e6:,.1f} MB")
+    _done("Serving build", started)
+
+
+@serve_app.command("run")
+def serve_run(
+    host: str = typer.Option("127.0.0.1", help="Interface to bind; keep local."),
+    port: int = typer.Option(8000, help="Port for the API."),
+    reload: bool = typer.Option(False, help="Restart on code changes."),
+) -> None:
+    """Start the API (Swagger docs at /docs)."""
+    import uvicorn
+
+    typer.echo(f"API at http://{host}:{port} (docs at /docs)")
+    uvicorn.run(
+        "ecommerce_intelligence.api.app:app", host=host, port=port, reload=reload
+    )
 
 
 def _describe(hits) -> None:

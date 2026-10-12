@@ -18,8 +18,8 @@ Next.js frontend. It runs entirely on a local PC; no cloud service is required.
 | 1 | Data foundation: H&M ingestion, DuckDB warehouse, integrity checks, thumbnails | Done |
 | 2 | Two-stage recommender (candidate generation + LightGBM ranker, MAP@12) | Done |
 | 3 | FashionCLIP image and text embeddings, similar-item and text search | Done |
-| 4 | Churn, lifetime value, segments, campaign simulator | **Done** |
-| 5 | FastAPI v2 | Planned |
+| 4 | Churn, lifetime value, segments, campaign simulator | Done |
+| 5 | FastAPI v2 | **Done** |
 | 6 | Gemini analyst copilot | Planned |
 | 7 | Next.js frontend | Planned |
 | 8 | CI, Docker Compose, final documentation | Planned |
@@ -262,6 +262,62 @@ probability and risk band (low < 0.5 <= medium < 0.75 <= high, or lapsed), the t
 segment, P(alive), expected visits, spend per visit, and 180-day value. The full run takes 13 minutes:
 snapshots and churn evaluation 5 minutes, scoring 4 minutes.
 
+## API (Phase 5)
+
+An offline **serving build** precomputes everything the website needs, so the **FastAPI** service only
+does cheap lookups. Nothing is retrained or downloaded while serving requests.
+
+```mermaid
+flowchart LR
+    P["Pipelines<br/>recommender, customers, search"] --> SB["eie serve prepare<br/>history sorted by customer,<br/>product stats, dashboard aggregates"]
+    SB --> ST["Read-only store<br/>DuckDB views over Parquet"]
+    E["FashionCLIP embeddings<br/>+ FAISS"] --> API
+    ST --> API["FastAPI<br/>bearer-key auth, typed schemas"]
+    API --> D["Swagger docs<br/>/docs"]
+    API --> W["Next.js app<br/>(Phase 7)"]
+```
+
+| Method | Route | What it returns |
+|---|---|---|
+| GET | `/health` | Readiness, build time, row counts (public) |
+| GET | `/api/overview` | KPIs, weekly trend, category and age mix, cohort retention |
+| GET | `/api/customers/sample` | A repeatable sample of active customers, filterable by segment and risk |
+| GET | `/api/customers/lookup` | Customer IDs matching a prefix |
+| GET | `/api/customers/{id}` | Customer 360: churn probability and top drivers, lifetime value, segment, profile |
+| GET | `/api/customers/{id}/history` | Recent purchases with product details |
+| GET | `/api/customers/{id}/recommendations` | Top 12 articles with the reason for each |
+| GET | `/api/products` | Catalog browse with filters, text match, sorting, and paging |
+| GET | `/api/products/facets` | Filter values for the catalog |
+| GET | `/api/products/{id}` | Product detail with sales statistics and a 12-week trend |
+| GET | `/api/products/{id}/similar` | Visually similar products |
+| GET | `/api/search?q=` | Natural-language product search |
+| GET | `/api/segments` | Segment sizes, risk, and value |
+| POST | `/api/campaigns/plan` | Campaign plan, ROI curve, and the customers to contact |
+| GET | `/api/models` | All evaluation reports, for the Model Lab page |
+| GET | `/images/{id}.webp` | Product thumbnails (public, cached for a day) |
+
+**Measured on this PC:**
+
+| Step | Time |
+|---|---|
+| Serving build | 26 s |
+| API start-up | about 1 s |
+| Customer 360 | 0.21 s |
+| Recommendations or history | 0.06–0.07 s |
+| Catalog page | 0.07 s |
+| Text search | 0.08–0.14 s |
+| Campaign plan over 993k customers | 0.26 s |
+
+The FashionCLIP text encoder loads from the local cache in a background thread at start-up. Before
+that change, the first search had to wait 53 seconds for the model.
+
+**Errors and security:**
+- Malformed IDs return 422, unknown customers or products return 404, and invalid campaign inputs
+  return 422.
+- Data routes need a bearer key that is compared in constant time. With no key configured they return
+  503 rather than running unprotected.
+- CORS allows only the local web app's origin.
+
 ## Run it on your PC
 
 These steps use **Windows PowerShell** and **Python 3.12**. Run one command at a time.
@@ -274,7 +330,7 @@ From the project folder (the one containing `pyproject.toml`):
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu128
-.\.venv\Scripts\python.exe -m pip install -e ".[data,train,recsys,search,dev]"
+.\.venv\Scripts\python.exe -m pip install -e ".[data,train,recsys,search,api,dev]"
 ```
 
 ### 2. Get access to the data
@@ -351,7 +407,28 @@ scores every customer into `data/serving/customer_scores.parquet` (about 13 minu
 those scores and prints who to contact and the expected return. Add `--trials 5` to `train` for a
 faster, less thorough tuning run.
 
-### 7. Explore the warehouse
+### 7. Start the API
+
+Create your local settings file and generate a private key for the API (once):
+
+```powershell
+Copy-Item .env.example .env
+.\.venv\Scripts\python.exe -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+Open `.env` in Notepad and paste the printed value after `EIE_API_KEY=`. `.env` is Git-ignored; never
+commit or share it. Then build the serving tables and start the server:
+
+```powershell
+.\.venv\Scripts\eie.exe serve prepare
+.\.venv\Scripts\eie.exe serve run
+```
+
+Open **http://127.0.0.1:8000/docs**, click **Authorize**, paste the key, and try any endpoint. Keep the
+window open while using the API, and press Ctrl+C to stop it. After later model retraining, run
+`serve prepare` again.
+
+### 8. Explore the warehouse
 
 ```powershell
 .\.venv\Scripts\python.exe -c "import duckdb; print(duckdb.connect('data/warehouse.duckdb', read_only=True).sql('SELECT index_group_name, count(*) AS purchases FROM sales GROUP BY ALL ORDER BY purchases DESC'))"
@@ -366,6 +443,8 @@ faster, less thorough tuning run.
 | `src/ecommerce_intelligence/recsys/` | Candidate generators, ALS, style profiles, features, LightGBM ranker, metrics, pipeline |
 | `src/ecommerce_intelligence/search/` | FashionCLIP encoder, embeddings, FAISS index, search benchmark |
 | `src/ecommerce_intelligence/customers/` | Snapshot features, churn, lifetime value, segments, campaign simulator, pipeline |
+| `src/ecommerce_intelligence/serving/` | Serving build and the read-only store |
+| `src/ecommerce_intelligence/api/` | FastAPI app, settings, and response schemas |
 | `src/ecommerce_intelligence/evaluation/` | Shared metric helpers |
 | `tests/` | Tests that run on a miniature synthetic H&M archive |
 | `reports/` | Data-quality, thumbnail, recommender, search-quality, and customer reports |

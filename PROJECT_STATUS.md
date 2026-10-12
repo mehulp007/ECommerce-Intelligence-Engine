@@ -4,7 +4,7 @@ Last updated: 2026-10-10
 
 ## Current phase
 
-**Phase 4 — Customer intelligence: complete.** Phase 5 (FastAPI v2) is next.
+**Phase 5 — API: complete.** Phase 6 (Gemini analyst copilot) is next.
 
 ## Phase log
 
@@ -15,7 +15,7 @@ Last updated: 2026-10-10
 | 2 | Candidate generation + LightGBM ranker, MAP@12 on the final week, baselines and ablations | Complete |
 | 3 | FashionCLIP image/text embeddings, FAISS similar-item and text search | Complete |
 | 4 | Churn (inactivity proxy), lifetime value, segments, campaign simulator | Complete |
-| 5 | FastAPI v2 | Planned |
+| 5 | FastAPI v2 | Complete |
 | 6 | Gemini analyst copilot | Planned |
 | 7 | Next.js frontend | Planned |
 | 8 | CI, Docker Compose, documentation | Planned |
@@ -72,6 +72,16 @@ validation week rather than the held-out week.
 | Segments | 5 clusters (silhouette 0.193) on behaviour + visual style; 378,488 lapsed customers |
 | Scores | 1,371,980 customers; 993,492 active; mean churn probability 0.627; total 180-day value 212,005 units |
 | Runtime | 13 minutes; GPU TreeSHAP cut churn scoring from 12.8 to 4.0 minutes |
+
+## Phase 5 measured results
+
+| Item | Value |
+|---|---|
+| Serving build | 26 s: purchases sorted by customer (225 MB), product statistics, dashboard aggregates |
+| Routes | 15 OpenAPI paths with typed schemas; bearer-key auth; public health and thumbnails |
+| Latency (local) | Customer 360 0.21 s; recommendations and history 0.06–0.07 s; text search 0.08–0.14 s; campaign plan 0.26 s |
+| Start-up | About 1 s; FashionCLIP warms up in the background from the local cache (first search was 53 s before) |
+| Tests | 10 API tests on synthetic shoppers run through the real pipelines; 34 tests in total |
 
 ## Known data facts
 

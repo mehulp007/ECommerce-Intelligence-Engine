@@ -42,12 +42,19 @@ class FashionClipEncoder:
         self.torch = torch
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         dtype = torch.float16 if self.device == "cuda" else torch.float32
-        self.model = (
-            CLIPModel.from_pretrained(model_name, torch_dtype=dtype)
-            .to(self.device)
-            .eval()
-        )
-        self.processor = CLIPProcessor.from_pretrained(model_name)
+        try:
+            # Use the local cache when the model is already downloaded; this
+            # skips the Hugging Face Hub update check and starts much faster.
+            model = CLIPModel.from_pretrained(
+                model_name, torch_dtype=dtype, local_files_only=True
+            )
+            self.processor = CLIPProcessor.from_pretrained(
+                model_name, local_files_only=True
+            )
+        except OSError:
+            model = CLIPModel.from_pretrained(model_name, torch_dtype=dtype)
+            self.processor = CLIPProcessor.from_pretrained(model_name)
+        self.model = model.to(self.device).eval()
         self.name = model_name
         self.revision = getattr(self.model.config, "_commit_hash", None)
         self.dim = int(self.model.config.projection_dim)

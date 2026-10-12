@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import date, timedelta
 
 import numpy as np
@@ -32,10 +33,19 @@ def _write(root, customers: int = 400) -> ProjectPaths:
     paths = ProjectPaths(root)
     paths.parquet.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(3)
-    ids = [f"c{i:04d}" for i in range(customers)]
+    # Real customer IDs are 64-character hex hashes.
+    ids = [hashlib.sha256(f"c{i}".encode()).hexdigest() for i in range(customers)]
     articles = [f"{i:010d}" for i in range(200_000_000, 200_000_060)]
     pd.DataFrame(
-        {"customer_id": ids, "age": rng.integers(18, 70, customers).astype("int16")}
+        {
+            "customer_id": ids,
+            "fashion_news_subscriber": rng.random(customers) < 0.4,
+            "active": rng.random(customers) < 0.4,
+            "club_member_status": "active",
+            "fashion_news_frequency": "none",
+            "age": rng.integers(18, 70, customers).astype("int16"),
+            "postal_code": "p",
+        }
     ).to_parquet(paths.table("customers"))
     pd.DataFrame(
         {
@@ -50,6 +60,19 @@ def _write(root, customers: int = 400) -> ProjectPaths:
             "index_group_name": [GROUPS[i % 5] for i in range(60)],
             "section_no": 1,
             "garment_group_no": np.arange(60) % 3,
+            "prod_name": [f"Item {i}" for i in range(60)],
+            "product_type_name": [
+                ["Dress", "Trousers", "Top"][i % 3] for i in range(60)
+            ],
+            "product_group_name": [
+                ["Garment Full body", "Garment Lower body", "Garment Upper body"][i % 3]
+                for i in range(60)
+            ],
+            "colour_group_name": [["Black", "White", "Red"][i % 3] for i in range(60)],
+            "department_name": "Dept",
+            "section_name": "Section",
+            "garment_group_name": "Jersey",
+            "detail_desc": "A synthetic product.",
         }
     ).to_parquet(paths.table("articles"))
     start, end = date(2018, 9, 20), date(2020, 9, 22)
