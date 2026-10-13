@@ -2,41 +2,16 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+from conftest import Encoder16
 from fastapi.testclient import TestClient
-from PIL import Image
 from pydantic import SecretStr
-from test_customers import _write
-from test_search import FakeEncoder
 
 from ecommerce_intelligence.api.app import create_app
 from ecommerce_intelligence.api.settings import Settings
 from ecommerce_intelligence.customers import campaign
-from ecommerce_intelligence.customers.pipeline import run as run_customers
-from ecommerce_intelligence.data.images import thumbnail_path
-from ecommerce_intelligence.recsys.pipeline import run as run_recsys
-from ecommerce_intelligence.serving.prepare import build
 
 KEY = "test-key"
 AUTH = {"Authorization": f"Bearer {KEY}"}
-
-
-class Encoder16(FakeEncoder):
-    dim = 16  # Matches the synthetic embeddings written by _write.
-
-
-@pytest.fixture(scope="module")
-def world(tmp_path_factory):
-    """Synthetic shoppers run through the real pipelines and serving build."""
-    paths = _write(tmp_path_factory.mktemp("api"))
-    run_recsys(paths, ablations=False, log=lambda _: None)
-    run_customers(paths, trials=1, log=lambda _: None)
-    articles = pd.read_parquet(paths.table("articles"))["article_id"]
-    for article_id in articles[:10]:
-        target = thumbnail_path(paths.thumbnails, article_id)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        Image.new("RGB", (8, 12), "white").save(target, format="WEBP")
-    build(paths, log=lambda _: None)
-    return paths
 
 
 @pytest.fixture(scope="module")

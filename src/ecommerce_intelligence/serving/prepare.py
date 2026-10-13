@@ -104,12 +104,20 @@ def build(paths: ProjectPaths, *, log=print) -> dict:
     log(f"overview: {timings['overview']}s")
     con.close()
 
+    from ecommerce_intelligence.copilot.sandbox import build_copilot_database
+
+    started = time.perf_counter()
+    build_copilot_database(paths)
+    timings["copilot_database"] = round(time.perf_counter() - started, 1)
+    log(f"copilot database: {timings['copilot_database']}s")
+
     files = {
         path.name: {
             "bytes": path.stat().st_size,
             "modified": datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat(),
         }
-        for path in sorted(out.glob("*.parquet")) + [out / "overview.json"]
+        for path in sorted(out.glob("*.parquet"))
+        + [out / "overview.json", out / "copilot.duckdb"]
     }
     manifest = {
         "built_at": datetime.now(UTC).isoformat(),

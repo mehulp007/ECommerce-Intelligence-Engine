@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import secrets
 import threading
 from collections.abc import Callable
@@ -11,11 +12,15 @@ from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ecommerce_intelligence.api import schemas
 from ecommerce_intelligence.api.settings import Settings
+from ecommerce_intelligence.copilot.agent import Agent, ChatModel, GeminiChat
+from ecommerce_intelligence.copilot.prompt import system_prompt
+from ecommerce_intelligence.copilot.sandbox import TABLES, Sandbox
+from ecommerce_intelligence.copilot.tools import DECLARATIONS, Toolbox
 from ecommerce_intelligence.paths import ProjectPaths
 from ecommerce_intelligence.search.embeddings import ArticleEmbeddings
 from ecommerce_intelligence.search.encoder import Encoder
@@ -65,9 +70,31 @@ def create_app(
     settings: Settings | None = None,
     paths: ProjectPaths | None = None,
     encoder_factory: Callable[[], Encoder] | None = None,
+    chat_model_factory: Callable[[], ChatModel] | None = None,
 ) -> FastAPI:
     settings = settings or Settings()
     paths = paths or ProjectPaths.default()
+
+    if chat_model_factory is None and settings.gemini_api_key:
+
+        def chat_model_factory() -> ChatModel:
+            return GeminiChat(
+                settings.gemini_api_key.get_secret_value(),
+                settings.copilot_model,
+                settings.copilot_fallback_model,
+            )
+
+    if chat_model_factory is not None:
+        # One shared client per app, so quota exhaustion it observes on one
+        # request routes later requests to the fallback model.
+        build_chat_model, shared = chat_model_factory, {}
+        shared_lock = threading.Lock()
+
+        def chat_model_factory() -> ChatModel:
+            with shared_lock:
+                if "model" not in shared:
+                    shared["model"] = build_chat_model()
+                return shared["model"]
 
     if encoder_factory is None and settings.eie_text_search:
 
@@ -83,6 +110,8 @@ def create_app(
         app.state.text_search = TextSearch(encoder_factory) if encoder_factory else None
         if app.state.text_search is not None:
             app.state.text_search.warm_up()
+        app.state.sandbox = Sandbox(paths)
+        app.state.system_prompt = system_prompt(app.state.sandbox.schema())
         yield
 
     app = FastAPI(
@@ -357,6 +386,63 @@ def create_app(
     def plan(request_body: schemas.CampaignRequest, data: Store) -> dict:
         """Rank customers by expected value saved and report spend, value, and ROI."""
         return data.plan_campaign(**request_body.model_dump())
+
+    # Copilot -------------------------------------------------------------------
+
+    @app.get(
+        "/api/copilot/status",
+        response_model=schemas.CopilotStatus,
+        tags=["copilot"],
+        dependencies=secured,
+    )
+    def copilot_status() -> dict:
+        return {
+            "configured": chat_model_factory is not None,
+            "model": settings.copilot_model,
+            "tables": sorted(TABLES),
+        }
+
+    @app.post("/api/copilot/chat", tags=["copilot"], dependencies=secured)
+    def copilot_chat(
+        request: Request, body: schemas.ChatRequest, data: Store, search: Index
+    ) -> StreamingResponse:
+        """Answer a question with tools; streams Server-Sent Events.
+
+        Each event is one JSON object: tool_call, table, chart, customer,
+        products, campaign, tool_error, thinking, answer, error, and finally done.
+        """
+        if chat_model_factory is None:
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                "Set GEMINI_API_KEY in .env to enable the copilot",
+            )
+        if body.messages[-1].role != "user":
+            raise HTTPException(
+                422,
+                "The last message must be from the user",
+            )
+        text_search: TextSearch | None = request.app.state.text_search
+
+        def encoder() -> Encoder:
+            if text_search is None:
+                raise RuntimeError("Text search is off")
+            return text_search.encoder()
+
+        toolbox = Toolbox(request.app.state.sandbox, data, search, encoder)
+        agent = Agent(
+            chat_model_factory(), toolbox, request.app.state.system_prompt, DECLARATIONS
+        )
+        history = [m.model_dump() for m in body.messages[:-1]]
+
+        def events():
+            for event in agent.run(body.messages[-1].content, history):
+                yield "data: " + json.dumps(event, default=str) + "\n\n"
+
+        return StreamingResponse(
+            events(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
 
     return app
 

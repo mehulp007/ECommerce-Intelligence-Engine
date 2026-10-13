@@ -6,10 +6,18 @@ import io
 import zipfile
 from pathlib import Path
 
+import pandas as pd
 import pytest
 from PIL import Image
+from test_customers import _write
+from test_search import FakeEncoder
 
+from ecommerce_intelligence.customers.pipeline import run as run_customers
+from ecommerce_intelligence.data.images import thumbnail_path
+from ecommerce_intelligence.data.warehouse import build_warehouse
 from ecommerce_intelligence.paths import ProjectPaths
+from ecommerce_intelligence.recsys.pipeline import run as run_recsys
+from ecommerce_intelligence.serving.prepare import build
 
 ARTICLES_CSV = (
     "article_id,product_code,prod_name,product_type_no,product_type_name,"
@@ -71,4 +79,23 @@ def write_archive(paths: ProjectPaths, *, transactions: str = TRANSACTIONS_CSV) 
 def project(tmp_path: Path) -> ProjectPaths:
     paths = ProjectPaths(tmp_path)
     write_archive(paths)
+    return paths
+
+
+class Encoder16(FakeEncoder):
+    dim = 16  # Matches the synthetic embeddings written by _write.
+
+
+@pytest.fixture(scope="session")
+def world(tmp_path_factory) -> ProjectPaths:
+    """Synthetic shoppers run through the real pipelines and serving build."""
+    paths = _write(tmp_path_factory.mktemp("world"))
+    build_warehouse(paths)
+    run_recsys(paths, ablations=False, log=lambda _: None)
+    run_customers(paths, trials=1, log=lambda _: None)
+    for article_id in pd.read_parquet(paths.table("articles"))["article_id"][:10]:
+        target = thumbnail_path(paths.thumbnails, article_id)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (8, 12), "white").save(target, format="WEBP")
+    build(paths, log=lambda _: None)
     return paths

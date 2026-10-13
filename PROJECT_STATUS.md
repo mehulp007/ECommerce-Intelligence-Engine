@@ -4,7 +4,7 @@ Last updated: 2026-10-10
 
 ## Current phase
 
-**Phase 5 — API: complete.** Phase 6 (Gemini analyst copilot) is next.
+**Phase 6 — Gemini analyst copilot: complete.** Phase 7 (Next.js frontend) is next.
 
 ## Phase log
 
@@ -16,7 +16,7 @@ Last updated: 2026-10-10
 | 3 | FashionCLIP image/text embeddings, FAISS similar-item and text search | Complete |
 | 4 | Churn (inactivity proxy), lifetime value, segments, campaign simulator | Complete |
 | 5 | FastAPI v2 | Complete |
-| 6 | Gemini analyst copilot | Planned |
+| 6 | Gemini analyst copilot | Complete |
 | 7 | Next.js frontend | Planned |
 | 8 | CI, Docker Compose, documentation | Planned |
 
@@ -82,6 +82,18 @@ validation week rather than the held-out week.
 | Latency (local) | Customer 360 0.21 s; recommendations and history 0.06–0.07 s; text search 0.08–0.14 s; campaign plan 0.26 s |
 | Start-up | About 1 s; FashionCLIP warms up in the background from the local cache (first search was 53 s before) |
 | Tests | 10 API tests on synthetic shoppers run through the real pipelines; 34 tests in total |
+
+## Phase 6 measured results
+
+| Item | Value |
+|---|---|
+| Model | `gemini-3.8-flash` (GA 2026-09-02), fallback `gemini-3.6-flash`; google-genai 2.30 |
+| Tools | run_sql, create_chart, get_customer, search_products, similar_products, plan_campaign |
+| SQL safety | One SELECT; allow-listed tables via syntax tree; read-only attach with external access off and configuration locked; 20 s / 500-row limits; 15 attack queries tested |
+| Live check | Growth question answered in 32 s (about 15.8k tokens); every figure matched an independent query |
+| Fixes from live use | `active` renamed `account_active`; prompt defines active customers, exact drivers, and model types; customer figures labelled by period |
+| Resilience | 503 retry with backoff; fallback before the first answer; free-tier daily quota (20 requests per model) detected, remembered until reset, and restarted once on the other model |
+| Tests | 37 copilot tests; 71 in total |
 
 ## Known data facts
 

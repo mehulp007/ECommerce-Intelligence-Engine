@@ -181,6 +181,21 @@ class CampaignPlan(BaseModel):
     curve: list[CurvePoint]
 
 
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=8000)
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage] = Field(min_length=1, max_length=40)
+
+
+class CopilotStatus(BaseModel):
+    configured: bool
+    model: str
+    tables: list[str]
+
+
 class Health(BaseModel):
     status: Literal["ready"]
     version: str

@@ -19,8 +19,8 @@ Next.js frontend. It runs entirely on a local PC; no cloud service is required.
 | 2 | Two-stage recommender (candidate generation + LightGBM ranker, MAP@12) | Done |
 | 3 | FashionCLIP image and text embeddings, similar-item and text search | Done |
 | 4 | Churn, lifetime value, segments, campaign simulator | Done |
-| 5 | FastAPI v2 | **Done** |
-| 6 | Gemini analyst copilot | Planned |
+| 5 | FastAPI v2 | Done |
+| 6 | Gemini analyst copilot | **Done** |
 | 7 | Next.js frontend | Planned |
 | 8 | CI, Docker Compose, final documentation | Planned |
 
@@ -318,6 +318,72 @@ that change, the first search had to wait 53 seconds for the model.
   503 rather than running unprotected.
 - CORS allows only the local web app's origin.
 
+## Analyst copilot (Phase 6)
+
+A chat assistant for merchandisers and CRM managers, powered by Google Gemini with function calling.
+It answers business questions by calling tools; every number it states comes from a tool result in
+the same answer.
+
+```mermaid
+flowchart LR
+    Q["Question"] --> G["Gemini<br/>gemini-3.8-flash,<br/>fallback gemini-3.6-flash"]
+    G -->|function calls| T["Tools"]
+    T --> S["run_sql<br/>guarded DuckDB sandbox"]
+    T --> C["create_chart"]
+    T --> U["get_customer<br/>risk, drivers, value, recommendations"]
+    T --> P["search_products / similar_products<br/>FashionCLIP"]
+    T --> K["plan_campaign"]
+    S & C & U & P & K -->|results| G
+    G --> A["Answer + tables, charts,<br/>product and customer cards (SSE)"]
+```
+
+**SQL safety, in four layers:**
+1. A query must parse as exactly one `SELECT`; DuckDB's own parser serializes nothing else.
+2. Its syntax tree may reference only five allow-listed tables (`sales`, `articles`, `customers`,
+   `customer_scores`, `recommendations`) or its own CTEs. Table functions such as `read_csv` and
+   `glob`, and functions such as `getenv`, are refused. Postal codes are not exposed.
+3. The sandbox connection attaches the data read-only, then disables file and network access and
+   locks its configuration. A query that slipped past the checks still could not read files, write,
+   or change settings.
+4. Each query has a 20-second limit and a 500-row cap.
+
+Fifteen attack-style queries, and an empty query, are tested: writes, schema changes, multiple statements, file reads
+(including one hidden in a subquery), `ATTACH`, `COPY`, `PRAGMA`, settings changes, environment
+variables, and catalog-qualified names.
+
+**Live results.** Each answer was checked against an independent query.
+
+- *"Which index groups grew or shrank most in the last 4 weeks vs the same weeks a year earlier?"*
+  The copilot wrote a two-period SQL comparison, checked the data's last date, drew a bar chart, and
+  answered. Every revenue figure and percentage matched an independent query; for example Sport
+  +39.90% and Baby/Children -23.74%. This took 32 s and about 15.8k tokens.
+- *"Find the highest-value customer at high inactivity risk, explain the risk, and draft a win-back
+  email with two recommended products."* It found the right customer, explained the risk with the
+  model's three stored drivers (12-month visits, tenure, and recency, with their direction), and
+  wrote the email with exactly two recommended products.
+- Two problems in the first live answers were fixed at the source. A misleading `active` column was
+  renamed `account_active`, and the prompt now defines "active customer" precisely and forbids
+  invented drivers. The customer tool also had to label every activity figure with its time period.
+
+**Resilience.** Gemini sometimes reports a busy model (503), and a free-tier key allows 20 requests
+per model per day (429). Each question uses 3 to 5 requests.
+
+- **Busy model:** the copilot retries with jittered backoff.
+- **First call fails:** before the first answer it switches to the fallback model. It never switches
+  mid-answer, because Gemini's thought signatures belong to one model.
+- **Daily quota used up:** it recognises this from Google's retry hint, remembers the model is
+  unavailable until the reset, and sends later questions straight to the fallback. If the quota runs
+  out mid-answer, it restarts the question once on the other model and sends a `restart` event.
+
+All of this was observed live and is covered by tests.
+
+**API.**
+- `POST /api/copilot/chat` streams Server-Sent Events: `tool_call`, `table`, `chart`, `customer`,
+  `products`, `campaign`, `tool_error`, `restart`, `answer`, `error`, and `done` (with the model used
+  and token counts).
+- `GET /api/copilot/status` reports whether a key is configured.
+- The Gemini key is read on the server from `.env` and never reaches the browser.
+
 ## Run it on your PC
 
 These steps use **Windows PowerShell** and **Python 3.12**. Run one command at a time.
@@ -330,7 +396,7 @@ From the project folder (the one containing `pyproject.toml`):
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu128
-.\.venv\Scripts\python.exe -m pip install -e ".[data,train,recsys,search,api,dev]"
+.\.venv\Scripts\python.exe -m pip install -e ".[data,train,recsys,search,api,copilot,dev]"
 ```
 
 ### 2. Get access to the data
@@ -428,7 +494,20 @@ Open **http://127.0.0.1:8000/docs**, click **Authorize**, paste the key, and try
 window open while using the API, and press Ctrl+C to stop it. After later model retraining, run
 `serve prepare` again.
 
-### 8. Explore the warehouse
+### 8. Ask the copilot
+
+Add your own Gemini API key to `.env` after `GEMINI_API_KEY=` (create one in Google AI Studio). Then
+either ask from the terminal:
+
+```powershell
+.\.venv\Scripts\eie.exe copilot ask "Which product groups grew most this September?"
+```
+
+or use `POST /api/copilot/chat` in the API docs. The default model is `gemini-3.8-flash`, falling back to
+`gemini-3.6-flash`; set `GEMINI_MODEL` or `GEMINI_FALLBACK_MODEL` in `.env` to change them. On the free
+tier, each model allows about 20 requests per day, which is roughly four to six questions.
+
+### 9. Explore the warehouse
 
 ```powershell
 .\.venv\Scripts\python.exe -c "import duckdb; print(duckdb.connect('data/warehouse.duckdb', read_only=True).sql('SELECT index_group_name, count(*) AS purchases FROM sales GROUP BY ALL ORDER BY purchases DESC'))"
@@ -445,6 +524,7 @@ window open while using the API, and press Ctrl+C to stop it. After later model 
 | `src/ecommerce_intelligence/customers/` | Snapshot features, churn, lifetime value, segments, campaign simulator, pipeline |
 | `src/ecommerce_intelligence/serving/` | Serving build and the read-only store |
 | `src/ecommerce_intelligence/api/` | FastAPI app, settings, and response schemas |
+| `src/ecommerce_intelligence/copilot/` | SQL sandbox, tools, prompt, and the Gemini agent loop |
 | `src/ecommerce_intelligence/evaluation/` | Shared metric helpers |
 | `tests/` | Tests that run on a miniature synthetic H&M archive |
 | `reports/` | Data-quality, thumbnail, recommender, search-quality, and customer reports |
@@ -476,5 +556,7 @@ real dataset.
 - **Lifetime value sees only the dataset window.** Customers active before September 2018 look newer
   than they are.
 - **Campaign uplift is an assumed input**; no campaign or experiment data exists in this dataset.
+- **The copilot can still misread a question.** Its numbers come from tools, but its interpretation
+  and wording should be checked. Its tables and SQL are shown for that reason.
 - Recommendations can include articles a customer already bought; these are labelled `buy_again`
   because repeat purchases are common in fashion.

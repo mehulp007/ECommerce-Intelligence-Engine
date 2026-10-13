@@ -32,6 +32,8 @@ serve_app = typer.Typer(
     help="Build serving tables and run the API.", no_args_is_help=True
 )
 app.add_typer(serve_app, name="serve")
+copilot_app = typer.Typer(help="Ask the Gemini analyst copilot.", no_args_is_help=True)
+app.add_typer(copilot_app, name="copilot")
 
 
 def _paths() -> ProjectPaths:
@@ -239,6 +241,64 @@ def serve_run(
     uvicorn.run(
         "ecommerce_intelligence.api.app:app", host=host, port=port, reload=reload
     )
+
+
+@copilot_app.command("ask")
+def copilot_ask(question: str) -> None:
+    """Answer one question with the copilot and print each step."""
+    from ecommerce_intelligence.api.settings import Settings
+    from ecommerce_intelligence.copilot.agent import Agent, GeminiChat
+    from ecommerce_intelligence.copilot.prompt import system_prompt
+    from ecommerce_intelligence.copilot.sandbox import Sandbox
+    from ecommerce_intelligence.copilot.tools import DECLARATIONS, Toolbox
+    from ecommerce_intelligence.search.embeddings import ArticleEmbeddings
+    from ecommerce_intelligence.search.encoder import FashionClipEncoder
+    from ecommerce_intelligence.search.index import ProductIndex
+    from ecommerce_intelligence.serving.store import ServingStore
+
+    settings = Settings()
+    if not settings.gemini_api_key:
+        typer.echo("Set GEMINI_API_KEY in .env first.", err=True)
+        raise typer.Exit(code=1)
+    paths = _paths()
+    sandbox = Sandbox(paths)
+    encoders = {}
+
+    def encoder():
+        if "clip" not in encoders:
+            encoders["clip"] = FashionClipEncoder(device="cpu")
+        return encoders["clip"]
+
+    toolbox = Toolbox(
+        sandbox,
+        ServingStore(paths),
+        ProductIndex(ArticleEmbeddings.load(paths.embeddings)),
+        encoder,
+    )
+    chat = GeminiChat(
+        settings.gemini_api_key.get_secret_value(),
+        settings.copilot_model,
+        settings.copilot_fallback_model,
+    )
+    agent = Agent(chat, toolbox, system_prompt(sandbox.schema()), DECLARATIONS)
+    for event in agent.run(question):
+        kind = event["type"]
+        if kind == "tool_call":
+            typer.echo(f"> {event['name']}({event['args']})")
+        elif kind == "table":
+            typer.echo(f"  {event['row_count']} rows: {', '.join(event['columns'])}")
+        elif kind in ("chart", "products", "customer", "campaign"):
+            typer.echo(f"  [{kind}] {event.get('title', '')}")
+        elif kind == "tool_error":
+            typer.echo(f"  tool error: {event['message']}")
+        elif kind in ("answer", "thinking"):
+            typer.echo()
+            typer.echo(event["text"])
+        elif kind == "error":
+            typer.echo(f"ERROR: {event['message']}", err=True)
+        elif kind == "done":
+            typer.echo()
+            typer.echo(f"({event['model']}, {event['seconds']} s, {event['usage']})")
 
 
 def _describe(hits) -> None:

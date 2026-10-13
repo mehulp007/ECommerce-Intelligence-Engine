@@ -19,6 +19,21 @@ class Settings(BaseSettings):
     eie_cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     eie_text_search: bool = True
     eie_search_device: str = "cpu"
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str = ""
+    gemini_fallback_model: str = ""
+
+    @property
+    def copilot_model(self) -> str:
+        from ecommerce_intelligence.copilot.agent import DEFAULT_MODEL
+
+        return self.gemini_model.strip() or DEFAULT_MODEL
+
+    @property
+    def copilot_fallback_model(self) -> str:
+        from ecommerce_intelligence.copilot.agent import DEFAULT_FALLBACK_MODEL
+
+        return self.gemini_fallback_model.strip() or DEFAULT_FALLBACK_MODEL
 
     @property
     def cors_origins(self) -> list[str]:
