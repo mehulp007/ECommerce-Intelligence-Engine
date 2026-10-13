@@ -4,9 +4,9 @@ A local retail intelligence studio built on **31.8 million real fashion purchase
 [H&M Personalized Fashion Recommendations](https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations)
 dataset: 1.37 million customers, 105,542 products, and 105,100 product photos.
 
-The finished project will combine a two-stage product recommender, visual and natural-language product
-search, churn and lifetime-value models, a campaign simulator, a Gemini-powered analyst copilot, and a
-Next.js frontend. It runs entirely on a local PC; no cloud service is required.
+It combines a two-stage product recommender, visual and natural-language product search, churn and
+lifetime-value models, a campaign simulator, and a Gemini-powered analyst copilot, behind a FastAPI
+service and a Next.js web app. It runs entirely on a local PC; no cloud service is required.
 
 > **Status: v2 is being built phase by phase.** The original UCI Online Retail version (FastAPI +
 > Streamlit) is preserved at the
@@ -20,8 +20,8 @@ Next.js frontend. It runs entirely on a local PC; no cloud service is required.
 | 3 | FashionCLIP image and text embeddings, similar-item and text search | Done |
 | 4 | Churn, lifetime value, segments, campaign simulator | Done |
 | 5 | FastAPI v2 | Done |
-| 6 | Gemini analyst copilot | **Done** |
-| 7 | Next.js frontend | Planned |
+| 6 | Gemini analyst copilot | Done |
+| 7 | Next.js frontend | **Done** |
 | 8 | CI, Docker Compose, final documentation | Planned |
 
 ## Data foundation (Phase 1)
@@ -274,7 +274,7 @@ flowchart LR
     E["FashionCLIP embeddings<br/>+ FAISS"] --> API
     ST --> API["FastAPI<br/>bearer-key auth, typed schemas"]
     API --> D["Swagger docs<br/>/docs"]
-    API --> W["Next.js app<br/>(Phase 7)"]
+    API --> W["Next.js app"]
 ```
 
 | Method | Route | What it returns |
@@ -384,9 +384,63 @@ All of this was observed live and is covered by tests.
 - `GET /api/copilot/status` reports whether a key is configured.
 - The Gemini key is read on the server from `.env` and never reaches the browser.
 
+## Web app (Phase 7)
+
+A **Next.js 16** app (App Router, React 19, TypeScript, Tailwind CSS 4, TanStack Query, Recharts) with
+seven pages, light and dark themes, and layouts that work from phone to desktop width.
+
+| Page | What it shows |
+|---|---|
+| **Overview** | KPIs, weekly revenue and online share, product group growth, revenue by index group, buyers by age, and a 24-month cohort retention heatmap |
+| **Customer 360** | Lookup by ID prefix and a filterable sample; each profile shows inactivity risk with its three SHAP drivers, predicted value, the recommended 12 products with the reason for each, and a photo timeline of purchases |
+| **Products** | Catalog browsing with filters, sorting, and paging; "Describe it" search with FashionCLIP; product pages with a 12-week sales chart and visually similar items |
+| **Segments** | Risk against value for each segment, where predicted value sits, and links to the customers or a campaign for each segment |
+| **Campaigns** | Budget, cost, and uplift sliders with segment and risk filters; reach, spend, expected value saved, ROI, the return curve, and the top targets update as you move them |
+| **Copilot** | Chat with the Gemini analyst; tool calls, SQL tables, charts, customer cards, and product grids stream in as it works |
+| **Model Lab** | Every offline result: recommender baselines and ablations, churn model comparison and calibration, lifetime value holdout, segment silhouettes, search precision, and data checks |
+
+```mermaid
+flowchart LR
+    B["Browser"] -->|"/api/*, /images/*"| N["Next.js server<br/>adds the bearer key"]
+    N -->|"Bearer key"| A["FastAPI"]
+    A -.->|"SSE stream"| N
+    N -.->|"SSE stream"| B
+```
+
+**How it is put together:**
+- **Keys stay on the server.** The browser only talks to the Next.js server. Its route handlers forward
+  `/api/*` and `/images/*` to FastAPI and add the bearer key there. Both keys were searched for in the
+  built browser bundle, the server build, and the served pages: 0 matches.
+- **Typed end to end.** `eie serve openapi` writes the API's OpenAPI schema and `openapi-typescript`
+  turns it into TypeScript types. A Python test fails if the saved schema drifts from the API.
+- **Streaming copilot.** Server-Sent Events pass straight through the proxy. Each tool call, table,
+  chart, customer card, and product grid renders as it arrives, and **Stop** aborts the request.
+- **Findings come from the data.** The Overview finds the longest run of weeks with almost no store
+  sales rather than hard-coding dates: the six weeks from 23 Mar to 3 May 2020, when over 99.9% of
+  items were bought online (store sales were exactly zero for the first five). This matches the spring
+  2020 store closures.
+- **Local only.** The dev and production servers bind to 127.0.0.1.
+
+**Measured on this PC (production build):**
+
+| Check | Result |
+|---|---|
+| `next build` | Compiles in 6 s; 8 of 12 routes pre-rendered as static pages |
+| Page HTML | 3–20 ms per page |
+| Proxied API calls | 6–160 ms (Customer 360 is the slowest) |
+| Product thumbnail | About 12 ms |
+| FashionCLIP text search from the browser | 0.09–0.18 s per request once the model is loaded |
+| Phone width (375 px) | No horizontal overflow on any page |
+
+The copilot UI was checked end to end with the real tools: a scripted model ran SQL, a chart, a customer
+lookup, a product search, and a campaign plan on the full data, and every event type rendered. A live
+Gemini call also went through the page, which showed the clear "quota used up" message while the free
+tier's daily limit was exhausted.
+
 ## Run it on your PC
 
-These steps use **Windows PowerShell** and **Python 3.12**. Run one command at a time.
+These steps use **Windows PowerShell**, **Python 3.12**, and **Node.js 20 or later** (for the web
+app). Run one command at a time.
 
 ### 1. Create the environment
 
@@ -507,7 +561,20 @@ or use `POST /api/copilot/chat` in the API docs. The default model is `gemini-3.
 `gemini-3.6-flash`; set `GEMINI_MODEL` or `GEMINI_FALLBACK_MODEL` in `.env` to change them. On the free
 tier, each model allows about 20 requests per day, which is roughly four to six questions.
 
-### 9. Explore the warehouse
+### 9. Open the web app
+
+Keep the API running (step 7) and, in a second PowerShell window:
+
+```powershell
+cd web
+npm install
+npm run dev
+```
+
+Open **http://127.0.0.1:3000**. The web app reads `EIE_API_KEY` from the project's `.env`, so there is
+nothing else to set. For a faster production version, run `npm run build` once and then `npm run start`.
+
+### 10. Explore the warehouse
 
 ```powershell
 .\.venv\Scripts\python.exe -c "import duckdb; print(duckdb.connect('data/warehouse.duckdb', read_only=True).sql('SELECT index_group_name, count(*) AS purchases FROM sales GROUP BY ALL ORDER BY purchases DESC'))"
@@ -526,6 +593,7 @@ tier, each model allows about 20 requests per day, which is roughly four to six 
 | `src/ecommerce_intelligence/api/` | FastAPI app, settings, and response schemas |
 | `src/ecommerce_intelligence/copilot/` | SQL sandbox, tools, prompt, and the Gemini agent loop |
 | `src/ecommerce_intelligence/evaluation/` | Shared metric helpers |
+| `web/` | Next.js app: pages in `app/`, views and charts in `components/`, API client and generated types in `lib/` |
 | `tests/` | Tests that run on a miniature synthetic H&M archive |
 | `reports/` | Data-quality, thumbnail, recommender, search-quality, and customer reports |
 | `data/`, `artifacts/` | Local data and generated outputs (Git-ignored) |
@@ -536,6 +604,10 @@ tier, each model allows about 20 requests per day, which is roughly four to six 
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m ruff check src tests
 .\.venv\Scripts\python.exe -m black --check src tests
+cd web
+npm run lint
+npm run typecheck
+npm run build
 ```
 
 The tests build a small fake archive with the real file layout, so they run in seconds without the
@@ -549,7 +621,8 @@ real dataset.
 - **Repeated rows are kept.** 2,974,905 rows repeat an earlier row exactly; they represent several units
   bought together.
 - **Sales channels.** `sales_channel_id = 2` is interpreted as online and `1` as store; the dataset does
-  not document these codes.
+  not document these codes. Code 1 drops to zero for five weeks in spring 2020, during the store
+  closures, which supports this reading.
 - The data is historical (2018–2020), not live.
 - **Churn is an inactivity proxy** (no purchase for 60 days), not a confirmed account closure, and
   SHAP drivers explain the raw model, not the calibrated probability.

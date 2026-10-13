@@ -543,3 +543,18 @@ def test_agent_restarts_once_on_another_model_when_quota_runs_out(
     kinds = [e["type"] for e in events]
     assert kinds == ["tool_call", "products", "restart", "answer", "done"]
     assert events[-1]["model"] == "m2"
+
+
+def test_agent_reports_once_when_every_model_is_exhausted(toolbox_factory) -> None:
+    outcomes = [_quota(), _quota()]
+
+    def generate_content(model, contents, config):
+        raise outcomes.pop(0)
+
+    agent = Agent(
+        _fake_chat(generate_content), toolbox_factory(), "Rules: test", DECLARATIONS
+    )
+    events = list(agent.run("q"))
+    # No restart is promised when no other model is left.
+    assert [e["type"] for e in events] == ["error", "done"]
+    assert "primary-model and fallback-model are unavailable" in events[0]["message"]

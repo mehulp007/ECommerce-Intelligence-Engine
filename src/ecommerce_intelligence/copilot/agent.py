@@ -94,13 +94,16 @@ class Agent:
                 yield from self._answer(session, question, usage)
                 break
             except ModelUnavailable as error:
-                if attempt == 0:
+                # Restart only if another model can still answer.
+                exhausted = getattr(self.model, "exhausted", lambda: None)()
+                if attempt == 0 and exhausted is None:
                     yield {
                         "type": "restart",
                         "message": f"{error}; answering again with another model.",
                     }
                     continue
-                yield {"type": "error", "message": str(error)}
+                yield {"type": "error", "message": str(exhausted or error)}
+                break
             except Exception as error:  # Provider failures end the stream cleanly.
                 yield {"type": "error", "message": f"{type(error).__name__}: {error}"}
                 break
@@ -203,14 +206,19 @@ class GeminiChat:
             if m and self.unavailable_until.get(m, 0.0) <= now
         ]
 
+    def exhausted(self) -> ModelUnavailable | None:
+        """The error to report when no model can answer until a quota resets."""
+        if self.available_models():
+            return None
+        soonest = min(self.unavailable_until.values()) - self.clock()
+        return ModelUnavailable(" and ".join(self.unavailable_until), soonest)
+
     def start(
         self, system: str, tools: list[dict], history: list[dict[str, str]]
     ) -> GeminiSession:
-        models = self.available_models()
-        if not models:
-            soonest = min(self.unavailable_until.values()) - self.clock()
-            raise ModelUnavailable(" and ".join(self.unavailable_until), soonest)
-        return GeminiSession(self, system, tools, history, models[0])
+        if error := self.exhausted():
+            raise error
+        return GeminiSession(self, system, tools, history, self.available_models()[0])
 
 
 class GeminiSession:

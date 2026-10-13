@@ -1,10 +1,10 @@
 # Project Status
 
-Last updated: 2026-10-10
+Last updated: 2026-10-13
 
 ## Current phase
 
-**Phase 6 — Gemini analyst copilot: complete.** Phase 7 (Next.js frontend) is next.
+**Phase 7 — Next.js frontend: complete.** Phase 8 (CI, Docker Compose, documentation) is next.
 
 ## Phase log
 
@@ -17,7 +17,7 @@ Last updated: 2026-10-10
 | 4 | Churn (inactivity proxy), lifetime value, segments, campaign simulator | Complete |
 | 5 | FastAPI v2 | Complete |
 | 6 | Gemini analyst copilot | Complete |
-| 7 | Next.js frontend | Planned |
+| 7 | Next.js frontend | Complete |
 | 8 | CI, Docker Compose, documentation | Planned |
 
 ## Phase 1 measured results
@@ -93,7 +93,20 @@ validation week rather than the held-out week.
 | Live check | Growth question answered in 32 s (about 15.8k tokens); every figure matched an independent query |
 | Fixes from live use | `active` renamed `account_active`; prompt defines active customers, exact drivers, and model types; customer figures labelled by period |
 | Resilience | 503 retry with backoff; fallback before the first answer; free-tier daily quota (20 requests per model) detected, remembered until reset, and restarted once on the other model |
-| Tests | 37 copilot tests; 71 in total |
+| Tests | 38 copilot tests (all-models-exhausted case added in Phase 7) |
+
+## Phase 7 measured results
+
+| Item | Value |
+|---|---|
+| Stack | Next.js 16.4 (App Router, Turbopack), React 19.3, TypeScript, Tailwind CSS 4, TanStack Query 5, Recharts 3 |
+| Pages | Overview, Customer 360 (list and profile), Products (browse, describe, detail), Segments, Campaigns, Copilot, Model Lab |
+| API access | Next.js route handlers forward `/api/*` and `/images/*` and add the bearer key on the server; 0 key matches in the client bundle, server build, or served HTML |
+| Types | Generated from the OpenAPI schema (`eie serve openapi`, `npm run gen:api`); a pytest check catches drift |
+| Production timings | Page HTML 3–20 ms; proxied API 6–160 ms; thumbnail about 12 ms |
+| Responsive check | No horizontal overflow at 375 px on any page; light and dark themes |
+| Copilot UI | All event types rendered from a real-tool replay; live Gemini call showed the quota message (free tier exhausted) |
+| Checks | `npm run lint`, `npm run typecheck`, `npm run build` clean; 73 Python tests |
 
 ## Known data facts
 
@@ -101,3 +114,4 @@ validation week rather than the held-out week.
 - 2,974,905 transaction rows repeat an earlier row exactly; these represent multiple units bought together and are kept.
 - 70.4% of transaction rows have `sales_channel_id = 2`, interpreted as online (the dataset does not document the codes).
 - Weekly volume dips sharply from mid-March 2020 (COVID store closures); later models must account for this shift.
+- Channel code 1 has zero rows in the five weeks from 2020-03-23 to 2020-04-26 (and 5 rows the week after), which supports reading code 2 as online.

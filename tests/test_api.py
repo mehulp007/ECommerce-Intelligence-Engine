@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pandas as pd
 import pytest
 from conftest import Encoder16
@@ -154,3 +157,12 @@ def test_overview_models_and_openapi(client) -> None:
     schema = client.get("/openapi.json").json()
     assert "/api/campaigns/plan" in schema["paths"]
     assert "Customer" in schema["components"]["schemas"]
+
+
+def test_web_app_types_match_the_api_schema() -> None:
+    # The web app's TypeScript types are generated from this file.
+    saved = Path(__file__).parents[1] / "web" / "lib" / "openapi.json"
+    current = create_app(Settings(_env_file=None)).openapi()
+    assert (
+        json.loads(saved.read_text(encoding="utf-8")) == current
+    ), "Run `eie serve openapi`, then `npm run gen:api` in web/"

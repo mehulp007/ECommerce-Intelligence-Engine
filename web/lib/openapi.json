@@ -1,0 +1,2332 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "E-Commerce Intelligence Engine API",
+    "description": "Recommendations, product search, and customer intelligence over the H&M Personalized Fashion dataset (historical, as of 2020-09-23). Prices and values are H&M's normalized price units.",
+    "version": "2.0.0.dev0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/models": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Models",
+        "description": "Evaluation reports: data quality, recommender, search, and customers.",
+        "operationId": "models_api_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Models Api Models Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/overview": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Overview",
+        "description": "KPIs, weekly trends, category mix, age bands, and cohort retention.",
+        "operationId": "overview_api_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Overview Api Overview Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/products": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Browse",
+        "operationId": "browse_api_products_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "index_group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Index Group"
+            }
+          },
+          {
+            "name": "product_group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product Group"
+            }
+          },
+          {
+            "name": "colour",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Colour"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "popular",
+                "newest",
+                "price_low",
+                "price_high"
+              ],
+              "type": "string",
+              "default": "popular",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 24,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticlePage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products/facets": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Facets",
+        "operationId": "facets_api_products_facets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Facets"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/products/{article_id}": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Product",
+        "operationId": "product_api_products__article_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "article_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{10}$",
+              "title": "Article Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products/{article_id}/similar": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Similar",
+        "operationId": "similar_api_products__article_id__similar_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "article_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{10}$",
+              "title": "Article Id"
+            }
+          },
+          {
+            "name": "k",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 12,
+              "title": "K"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchHit"
+                  },
+                  "title": "Response Similar Api Products  Article Id  Similar Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Text Search",
+        "description": "Natural-language search over product photos and descriptions.",
+        "operationId": "text_search_api_search_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 120,
+              "title": "Q"
+            }
+          },
+          {
+            "name": "k",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 24,
+              "title": "K"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchHit"
+                  },
+                  "title": "Response Text Search Api Search Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/sample": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Sample",
+        "description": "A repeatable sample of active customers to explore.",
+        "operationId": "sample_api_customers_sample_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "segment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Segment Id"
+            }
+          },
+          {
+            "name": "risk_band",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Risk Band"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "seed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Seed"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerSample"
+                  },
+                  "title": "Response Sample Api Customers Sample Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/lookup": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Lookup",
+        "description": "Customer IDs starting with a prefix (IDs are 64-character hashes).",
+        "operationId": "lookup_api_customers_lookup_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "prefix",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 4,
+              "maxLength": 64,
+              "pattern": "^[0-9a-f]+$",
+              "title": "Prefix"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Lookup Api Customers Lookup Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/{customer_id}": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Customer",
+        "operationId": "customer_api_customers__customer_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Customer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/{customer_id}/history": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "History",
+        "operationId": "history_api_customers__customer_id__history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Customer Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 30,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Purchase"
+                  },
+                  "title": "Response History Api Customers  Customer Id  History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/{customer_id}/recommendations": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Recommendations",
+        "operationId": "recommendations_api_customers__customer_id__recommendations_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Customer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Recommendation"
+                  },
+                  "title": "Response Recommendations Api Customers  Customer Id  Recommendations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/segments": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Segments",
+        "operationId": "segments_api_segments_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Segment"
+                  },
+                  "type": "array",
+                  "title": "Response Segments Api Segments Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/campaigns/plan": {
+      "post": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Plan",
+        "description": "Rank customers by expected value saved and report spend, value, and ROI.",
+        "operationId": "plan_api_campaigns_plan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignPlan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/copilot/status": {
+      "get": {
+        "tags": [
+          "copilot"
+        ],
+        "summary": "Copilot Status",
+        "operationId": "copilot_status_api_copilot_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotStatus"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/copilot/chat": {
+      "post": {
+        "tags": [
+          "copilot"
+        ],
+        "summary": "Copilot Chat",
+        "description": "Answer a question with tools; streams Server-Sent Events.\n\nEach event is one JSON object: tool_call, table, chart, customer,\nproducts, campaign, tool_error, thinking, answer, error, and finally done.",
+        "operationId": "copilot_chat_api_copilot_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Article": {
+        "properties": {
+          "article_id": {
+            "type": "string",
+            "title": "Article Id"
+          },
+          "prod_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prod Name"
+          },
+          "product_type_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Type Name"
+          },
+          "product_group_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Group Name"
+          },
+          "colour_group_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour Group Name"
+          },
+          "department_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Name"
+          },
+          "index_group_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Group Name"
+          },
+          "section_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Name"
+          },
+          "garment_group_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Garment Group Name"
+          },
+          "detail_desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail Desc"
+          },
+          "median_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Price"
+          },
+          "sales_4w": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales 4W"
+          },
+          "popularity_rank_4w": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Popularity Rank 4W"
+          },
+          "has_image": {
+            "type": "boolean",
+            "title": "Has Image"
+          }
+        },
+        "type": "object",
+        "required": [
+          "article_id",
+          "prod_name",
+          "product_type_name",
+          "product_group_name",
+          "colour_group_name",
+          "department_name",
+          "index_group_name",
+          "section_name",
+          "garment_group_name",
+          "detail_desc",
+          "has_image"
+        ],
+        "title": "Article"
+      },
+      "ArticleDetail": {
+        "properties": {
+          "article_id": {
+            "type": "string",
+            "title": "Article Id"
+          },
+          "prod_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prod Name"
+          },
+          "product_type_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Type Name"
+          },
+          "product_group_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Group Name"
+          },
+          "colour_group_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour Group Name"
+          },
+          "department_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Name"
+          },
+          "index_group_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Group Name"
+          },
+          "section_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Name"
+          },
+          "garment_group_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Garment Group Name"
+          },
+          "detail_desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail Desc"
+          },
+          "median_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Price"
+          },
+          "sales_4w": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales 4W"
+          },
+          "popularity_rank_4w": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Popularity Rank 4W"
+          },
+          "has_image": {
+            "type": "boolean",
+            "title": "Has Image"
+          },
+          "sales_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales Total"
+          },
+          "sales_1w": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales 1W"
+          },
+          "buyers_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyers Total"
+          },
+          "first_sale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Sale"
+          },
+          "last_sale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sale"
+          },
+          "online_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Online Share"
+          },
+          "weekly_sales_12w": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Weekly Sales 12W"
+          }
+        },
+        "type": "object",
+        "required": [
+          "article_id",
+          "prod_name",
+          "product_type_name",
+          "product_group_name",
+          "colour_group_name",
+          "department_name",
+          "index_group_name",
+          "section_name",
+          "garment_group_name",
+          "detail_desc",
+          "has_image",
+          "sales_total",
+          "sales_1w",
+          "buyers_total",
+          "first_sale",
+          "last_sale",
+          "online_share",
+          "weekly_sales_12w"
+        ],
+        "title": "ArticleDetail"
+      },
+      "ArticlePage": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Article"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "ArticlePage"
+      },
+      "CampaignCustomer": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "churn_probability": {
+            "type": "number",
+            "title": "Churn Probability"
+          },
+          "clv_180d": {
+            "type": "number",
+            "title": "Clv 180D"
+          },
+          "segment_name": {
+            "type": "string",
+            "title": "Segment Name"
+          },
+          "risk_band": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "lapsed"
+            ],
+            "title": "Risk Band"
+          },
+          "expected_value_saved": {
+            "type": "number",
+            "title": "Expected Value Saved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "customer_id",
+          "churn_probability",
+          "clv_180d",
+          "segment_name",
+          "risk_band",
+          "expected_value_saved"
+        ],
+        "title": "CampaignCustomer"
+      },
+      "CampaignPlan": {
+        "properties": {
+          "eligible_customers": {
+            "type": "integer",
+            "title": "Eligible Customers"
+          },
+          "contacted": {
+            "type": "integer",
+            "title": "Contacted"
+          },
+          "spend": {
+            "type": "number",
+            "title": "Spend"
+          },
+          "expected_value_saved": {
+            "type": "number",
+            "title": "Expected Value Saved"
+          },
+          "expected_net": {
+            "type": "number",
+            "title": "Expected Net"
+          },
+          "roi": {
+            "type": "number",
+            "title": "Roi"
+          },
+          "profitable_customers": {
+            "type": "integer",
+            "title": "Profitable Customers"
+          },
+          "contacted_by_segment": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Contacted By Segment"
+          },
+          "top_customers": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignCustomer"
+            },
+            "type": "array",
+            "title": "Top Customers"
+          },
+          "curve": {
+            "items": {
+              "$ref": "#/components/schemas/CurvePoint"
+            },
+            "type": "array",
+            "title": "Curve"
+          }
+        },
+        "type": "object",
+        "required": [
+          "eligible_customers",
+          "contacted",
+          "spend",
+          "expected_value_saved",
+          "expected_net",
+          "roi",
+          "profitable_customers",
+          "contacted_by_segment",
+          "top_customers",
+          "curve"
+        ],
+        "title": "CampaignPlan"
+      },
+      "CampaignRequest": {
+        "properties": {
+          "budget": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Budget",
+            "description": "Total budget in price units",
+            "default": 500.0
+          },
+          "cost_per_contact": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Cost Per Contact",
+            "default": 0.005
+          },
+          "uplift": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Uplift",
+            "description": "Assumed retention uplift",
+            "default": 0.1
+          },
+          "segment_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segment Names"
+          },
+          "risk_bands": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk Bands"
+          },
+          "top": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Top",
+            "default": 25
+          }
+        },
+        "type": "object",
+        "title": "CampaignRequest"
+      },
+      "ChatMessage": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 8000,
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "ChatMessage"
+      },
+      "ChatRequest": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatMessage"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "minItems": 1,
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages"
+        ],
+        "title": "ChatRequest"
+      },
+      "CopilotStatus": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "tables": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tables"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "model",
+          "tables"
+        ],
+        "title": "CopilotStatus"
+      },
+      "CurvePoint": {
+        "properties": {
+          "contacted": {
+            "type": "integer",
+            "title": "Contacted"
+          },
+          "spend": {
+            "type": "number",
+            "title": "Spend"
+          },
+          "expected_value_saved": {
+            "type": "number",
+            "title": "Expected Value Saved"
+          },
+          "expected_net": {
+            "type": "number",
+            "title": "Expected Net"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contacted",
+          "spend",
+          "expected_value_saved",
+          "expected_net"
+        ],
+        "title": "CurvePoint"
+      },
+      "Customer": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "churn_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Churn Probability",
+            "description": "Calibrated probability of no purchase in the next 60 days"
+          },
+          "risk_band": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "lapsed"
+            ],
+            "title": "Risk Band"
+          },
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/Driver"
+            },
+            "type": "array",
+            "title": "Drivers"
+          },
+          "segment_id": {
+            "type": "integer",
+            "title": "Segment Id"
+          },
+          "segment_name": {
+            "type": "string",
+            "title": "Segment Name"
+          },
+          "recency_days": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recency Days"
+          },
+          "visits_365d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visits 365D"
+          },
+          "spend_365d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spend 365D"
+          },
+          "p_alive": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P Alive"
+          },
+          "expected_visits_180d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Visits 180D"
+          },
+          "expected_visit_spend": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Visit Spend"
+          },
+          "clv_180d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clv 180D"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/CustomerProfile"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/CustomerSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "customer_id",
+          "churn_probability",
+          "risk_band",
+          "drivers",
+          "segment_id",
+          "segment_name",
+          "recency_days",
+          "visits_365d",
+          "spend_365d",
+          "p_alive",
+          "expected_visits_180d",
+          "expected_visit_spend",
+          "clv_180d",
+          "profile",
+          "summary"
+        ],
+        "title": "Customer"
+      },
+      "CustomerProfile": {
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "club_member_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Club Member Status"
+          },
+          "fashion_news_frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fashion News Frequency"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "fashion_news_subscriber": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fashion News Subscriber"
+          }
+        },
+        "type": "object",
+        "title": "CustomerProfile"
+      },
+      "CustomerSample": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "title": "Customer Id"
+          },
+          "churn_probability": {
+            "type": "number",
+            "title": "Churn Probability"
+          },
+          "risk_band": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "lapsed"
+            ],
+            "title": "Risk Band"
+          },
+          "segment_id": {
+            "type": "integer",
+            "title": "Segment Id"
+          },
+          "segment_name": {
+            "type": "string",
+            "title": "Segment Name"
+          },
+          "clv_180d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clv 180D"
+          },
+          "visits_365d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visits 365D"
+          },
+          "spend_365d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spend 365D"
+          },
+          "recency_days": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recency Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "customer_id",
+          "churn_probability",
+          "risk_band",
+          "segment_id",
+          "segment_name",
+          "clv_180d",
+          "visits_365d",
+          "spend_365d",
+          "recency_days"
+        ],
+        "title": "CustomerSample"
+      },
+      "CustomerSummary": {
+        "properties": {
+          "purchases": {
+            "type": "integer",
+            "title": "Purchases"
+          },
+          "spend_units": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spend Units"
+          },
+          "visits": {
+            "type": "integer",
+            "title": "Visits"
+          },
+          "first_purchase": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Purchase"
+          },
+          "last_purchase": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Purchase"
+          },
+          "online_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Online Share"
+          }
+        },
+        "type": "object",
+        "required": [
+          "purchases",
+          "spend_units",
+          "visits",
+          "first_purchase",
+          "last_purchase",
+          "online_share"
+        ],
+        "title": "CustomerSummary"
+      },
+      "Driver": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "log_odds": {
+            "type": "number",
+            "title": "Log Odds",
+            "description": "Contribution to the raw model's log-odds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "feature",
+          "value",
+          "log_odds"
+        ],
+        "title": "Driver"
+      },
+      "Facets": {
+        "properties": {
+          "index_groups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Index Groups"
+          },
+          "product_groups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Product Groups"
+          },
+          "colours": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Colours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index_groups",
+          "product_groups",
+          "colours"
+        ],
+        "title": "Facets"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ready",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "data_end": {
+            "type": "string",
+            "title": "Data End"
+          },
+          "built_at": {
+            "type": "string",
+            "title": "Built At"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "text_search": {
+            "type": "boolean",
+            "title": "Text Search"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "data_end",
+          "built_at",
+          "counts",
+          "text_search"
+        ],
+        "title": "Health"
+      },
+      "Purchase": {
+        "properties": {
+          "purchase_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Purchase Date"
+          },
+          "article_id": {
+            "type": "string",
+            "title": "Article Id"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "online",
+              "store"
+            ],
+            "title": "Channel"
+          },
+          "article": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Article"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "purchase_date",
+          "article_id",
+          "price",
+          "channel",
+          "article"
+        ],
+        "title": "Purchase"
+      },
+      "Recommendation": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "article_id": {
+            "type": "string",
+            "title": "Article Id"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "buy_again",
+              "bought_together",
+              "similar_style",
+              "similar_shoppers",
+              "popular_in_age_group",
+              "trending"
+            ],
+            "title": "Reason"
+          },
+          "article": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Article"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "article_id",
+          "score",
+          "reason",
+          "article"
+        ],
+        "title": "Recommendation"
+      },
+      "SearchHit": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "article": {
+            "$ref": "#/components/schemas/Article"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "article"
+        ],
+        "title": "SearchHit"
+      },
+      "Segment": {
+        "properties": {
+          "segment_id": {
+            "type": "integer",
+            "title": "Segment Id"
+          },
+          "segment_name": {
+            "type": "string",
+            "title": "Segment Name"
+          },
+          "customers": {
+            "type": "integer",
+            "title": "Customers"
+          },
+          "mean_churn_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Churn Probability"
+          },
+          "median_clv_180d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Clv 180D"
+          },
+          "total_clv_180d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Clv 180D"
+          },
+          "median_visits_365d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Visits 365D"
+          },
+          "median_spend_365d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Spend 365D"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segment_id",
+          "segment_name",
+          "customers",
+          "mean_churn_probability",
+          "median_clv_180d",
+          "total_clv_180d",
+          "median_visits_365d",
+          "median_spend_365d"
+        ],
+        "title": "Segment"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

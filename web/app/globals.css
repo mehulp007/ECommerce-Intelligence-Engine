@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f6f6f8;
+  --surface: #ffffff;
+  --surface-2: #f0f0f4;
+  --border: #e3e3ea;
+  --fg: #16161d;
+  --muted: #676774;
+  --accent: #4f46e5;
+  --accent-fg: #ffffff;
+  --accent-soft: #eef0ff;
+  --good: #059669;
+  --warn: #d97706;
+  --bad: #dc2626;
+  --chart-1: #4f46e5;
+  --chart-2: #0d9488;
+  --chart-3: #d97706;
+  --chart-4: #db2777;
+  --chart-5: #0284c7;
+  --chart-6: #7c3aed;
+  --grid: #e7e7ee;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0c0c11;
+  --surface: #15151c;
+  --surface-2: #1d1d26;
+  --border: #2a2a36;
+  --fg: #ececf1;
+  --muted: #9b9bab;
+  --accent: #818cf8;
+  --accent-fg: #0c0c11;
+  --accent-soft: #23234a;
+  --good: #34d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --chart-1: #818cf8;
+  --chart-2: #2dd4bf;
+  --chart-3: #fbbf24;
+  --chart-4: #f472b6;
+  --chart-5: #38bdf8;
+  --chart-6: #a78bfa;
+  --grid: #262632;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Readable defaults for copilot answers rendered from Markdown. */
+.prose-answer p {
+  margin: 0.5rem 0;
+}
+.prose-answer ul,
+.prose-answer ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+.prose-answer ul {
+  list-style: disc;
+}
+.prose-answer ol {
+  list-style: decimal;
+}
+.prose-answer li {
+  margin: 0.2rem 0;
+}
+.prose-answer strong {
+  font-weight: 600;
+}
+.prose-answer h1,
+.prose-answer h2,
+.prose-answer h3 {
+  font-weight: 600;
+  margin: 0.9rem 0 0.4rem;
+}
+.prose-answer code {
+  font-family: var(--font-geist-mono);
+  font-size: 0.85em;
+  background: var(--surface-2);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
+.prose-answer table {
+  width: 100%;
+  margin: 0.6rem 0;
+  font-size: 0.85rem;
+  border-collapse: collapse;
+}
+.prose-answer th,
+.prose-answer td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.3rem 0.5rem;
+  text-align: left;
+}
+.prose-answer blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 0.75rem;
+  color: var(--muted);
+}
+
+input[type="range"] {
+  accent-color: var(--accent);
+}

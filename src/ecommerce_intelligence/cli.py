@@ -243,6 +243,25 @@ def serve_run(
     )
 
 
+@serve_app.command("openapi")
+def serve_openapi(
+    output: str = typer.Option(
+        "web/lib/openapi.json", help="Where to write the OpenAPI schema."
+    ),
+) -> None:
+    """Write the API's OpenAPI schema without starting it (for the web types)."""
+    import json
+    from pathlib import Path
+
+    from ecommerce_intelligence.api.app import create_app
+
+    path = Path(output)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    schema = create_app().openapi()
+    path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
+    typer.echo(f"Wrote {path} ({len(schema['paths'])} paths)")
+
+
 @copilot_app.command("ask")
 def copilot_ask(question: str) -> None:
     """Answer one question with the copilot and print each step."""
