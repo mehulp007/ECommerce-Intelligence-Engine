@@ -56,3 +56,6 @@ web/.env*.local
 
 # Local logs
 *.log
+
+# Local run logs
+logs/

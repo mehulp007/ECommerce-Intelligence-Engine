@@ -130,6 +130,23 @@ def data_all() -> None:
     data_thumbnails(workers=0, limit=0)
 
 
+@app.command("build")
+def build_all(
+    device: str = typer.Option("", help="cuda or cpu for FashionCLIP (default: auto)."),
+    trials: int = typer.Option(25, help="Optuna tuning trials for the churn model."),
+    ablations: bool = typer.Option(True, help="Measure each recommender source."),
+) -> None:
+    """Run every pipeline in order: data, search, recommender, customers, serving."""
+    started = time.perf_counter()
+    data_all()
+    search_embed(device=device)
+    search_evaluate()
+    recsys_train(ablations=ablations, score=True)
+    customers_train(trials=trials)
+    serve_prepare()
+    _done("Full build", started)
+
+
 @recsys_app.command("train")
 def recsys_train(
     ablations: bool = typer.Option(True, help="Measure each source's contribution."),

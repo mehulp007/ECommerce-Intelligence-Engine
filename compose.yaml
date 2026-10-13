@@ -1,0 +1,34 @@
+# Runs the API and the web app. Build the data on the host first (eie build).
+# Start: docker compose up --build    Open: http://127.0.0.1:3000
+services:
+  api:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      EIE_PROJECT_ROOT: /app
+      HF_HOME: /cache/huggingface
+    volumes:
+      - ./data:/app/data:ro
+      - ./reports:/app/reports:ro
+      - model-cache:/cache/huggingface
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    environment:
+      EIE_API_URL: http://api:8000
+      EIE_API_KEY: ${EIE_API_KEY:?Set EIE_API_KEY in .env}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  # FashionCLIP is downloaded once on first start and kept here.
+  model-cache:

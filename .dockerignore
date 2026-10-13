@@ -1,0 +1,14 @@
+# Data and models are mounted at run time, never copied into the image.
+data/
+artifacts/
+reports/
+web/
+logs/
+.venv/
+.git/
+.github/
+.pytest_cache/
+.ruff_cache/
+**/__pycache__/
+*.log
+.env

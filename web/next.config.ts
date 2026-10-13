@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Self-contained server bundle for the container image.
-  output: "standalone",
+  // A self-contained server bundle, used by the container image.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   poweredByHeader: false,
   devIndicators: { position: "bottom-right" },
   turbopack: {

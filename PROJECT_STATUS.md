@@ -4,7 +4,7 @@ Last updated: 2026-10-13
 
 ## Current phase
 
-**Phase 7 — Next.js frontend: complete.** Phase 8 (CI, Docker Compose, documentation) is next.
+**All phases complete.** Phase 8 added CI, Docker Compose, one-command setup, and the final README.
 
 ## Phase log
 
@@ -18,7 +18,7 @@ Last updated: 2026-10-13
 | 5 | FastAPI v2 | Complete |
 | 6 | Gemini analyst copilot | Complete |
 | 7 | Next.js frontend | Complete |
-| 8 | CI, Docker Compose, documentation | Planned |
+| 8 | CI, Docker Compose, documentation | Complete |
 
 ## Phase 1 measured results
 
@@ -107,6 +107,16 @@ validation week rather than the held-out week.
 | Responsive check | No horizontal overflow at 375 px on any page; light and dark themes |
 | Copilot UI | All event types rendered from a real-tool replay; live Gemini call showed the quota message (free tier exhausted) |
 | Checks | `npm run lint`, `npm run typecheck`, `npm run build` clean; 73 Python tests |
+
+## Phase 8 results
+
+| Item | Value |
+|---|---|
+| CI | GitHub Actions: Python lint and tests (without PyTorch), web lint, type check and build, and both container images |
+| Setup | `scripts/setup.ps1` (environment, PyTorch CUDA or CPU, project, web app, `.env` with a generated key), `eie build` (every pipeline in order), `scripts/start.ps1` (API and web app together) |
+| Docker | `compose.yaml` with an API image (CPU PyTorch) and a standalone Next.js image; data and reports mounted read-only; ports bound to 127.0.0.1 |
+| Tests | 74 Python tests, including the build order; they also pass without PyTorch, as CI runs them |
+| README | Rewritten: features, held-out results, architecture, stack, three-step setup |
 
 ## Known data facts
 
