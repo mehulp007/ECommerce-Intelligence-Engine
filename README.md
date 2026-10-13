@@ -4,6 +4,7 @@
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-000000)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 A retail intelligence app built on **31.8 million real fashion purchases** from the
 [H&M Personalized Fashion Recommendations](https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations)
@@ -181,3 +182,8 @@ dataset. GitHub Actions runs these checks and builds both container images on ev
 - **Campaign uplift is an assumption**; the dataset has no experiment to measure it.
 - **The copilot can misread a question.** Its numbers come from tools, and its SQL and tables are shown
   so answers can be checked.
+
+## License
+
+The code is released under the [MIT License](LICENSE). The H&M dataset is not covered by this license;
+it remains under the Kaggle competition's terms.

@@ -29,8 +29,7 @@ Last updated: 2026-10-13
 | Articles | 105,542 (104,547 sold at least once) |
 | Integrity checks | Passed: no nulls, orphans, non-positive prices, or duplicate keys |
 | Parquet size | 423 MB transactions, 92 MB customers, 3.5 MB articles |
-| Ingest / warehouse / quality runtime | 28.3 s / 7.7 s / 9.8 s on an i7-14650HX |
-| Thumbnails | 105,100 WebP images (256x384), 0 failures, 0.59 GB, 225 s |
+| Thumbnails | 105,100 WebP images (256x384), 0 failures, 0.59 GB |
 | Articles without a photo | 442 |
 
 ## Phase 2 measured results
@@ -42,7 +41,6 @@ Last updated: 2026-10-13
 | Candidates | ~108 per customer, covering 13.9% of held-out purchases |
 | Ranker | LightGBM LambdaRank, 45 features, 120 rounds chosen by early stopping on the 9 Sep week |
 | Production output | 16,463,760 rows: top 12 for all 1,371,980 customers as of 2020-09-23 |
-| Runtime | 20 minutes end to end, including eight ablation models |
 
 Phase 2's sparse categorical codes were re-encoded to consecutive integers in Phase 3; LightGBM now
 reports no warnings.
@@ -51,12 +49,12 @@ reports no warnings.
 
 | Item | Value |
 |---|---|
-| Embeddings | FashionCLIP (MIT), 512-d; 105,542 descriptions in 48 s and 105,100 photos in 8.6 min on an RTX 4060 Laptop GPU; 207 MB |
+| Embeddings | FashionCLIP (MIT), 512-d; 105,542 descriptions and 105,100 photos; 207 MB (float16) |
 | Cross-modal sanity check | A photo's nearest description is its own for 60.2% of 2,022 sampled products |
 | Text search precision@10 | 0.95 on 12 labelled queries after mean-centring each modality (0.22 before); weights chosen on the same queries |
 | Recommender MAP@12 | 0.0346 (Phase 2: 0.0344), 48 features, ~133 candidates per customer, candidate recall 14.4% |
 | Style signal | `style_similarity` is 11th of 48 features by gain; the style candidate source alone does not help (removing it: 0.0348) |
-| Production output | 16,463,760 rows for 1,371,980 customers; full run 33 minutes |
+| Production output | 16,463,760 rows for 1,371,980 customers |
 
 Possible follow-up: drop the similar-style candidate source (keep the feature) and confirm on a new
 validation week rather than the held-out week.
@@ -71,16 +69,14 @@ validation week rather than the held-out week.
 | Lifetime value holdout | Spend MAE 0.139, correlation 0.668, total +7.3% vs actual (previous-period baseline MAE 0.145) |
 | Segments | 5 clusters (silhouette 0.193) on behaviour + visual style; 378,488 lapsed customers |
 | Scores | 1,371,980 customers; 993,492 active; mean churn probability 0.627; total 180-day value 212,005 units |
-| Runtime | 13 minutes; GPU TreeSHAP cut churn scoring from 12.8 to 4.0 minutes |
 
 ## Phase 5 measured results
 
 | Item | Value |
 |---|---|
-| Serving build | 26 s: purchases sorted by customer (225 MB), product statistics, dashboard aggregates |
+| Serving build | Purchases sorted by customer (225 MB), product statistics, dashboard aggregates |
 | Routes | 15 OpenAPI paths with typed schemas; bearer-key auth; public health and thumbnails |
-| Latency (local) | Customer 360 0.21 s; recommendations and history 0.06–0.07 s; text search 0.08–0.14 s; campaign plan 0.26 s |
-| Start-up | About 1 s; FashionCLIP warms up in the background from the local cache (first search was 53 s before) |
+| Start-up | FashionCLIP warms up in a background thread from the local cache, so the first search does not wait for the model |
 | Tests | 10 API tests on synthetic shoppers run through the real pipelines; 34 tests in total |
 
 ## Phase 6 measured results
@@ -103,7 +99,6 @@ validation week rather than the held-out week.
 | Pages | Overview, Customer 360 (list and profile), Products (browse, describe, detail), Segments, Campaigns, Copilot, Model Lab |
 | API access | Next.js route handlers forward `/api/*` and `/images/*` and add the bearer key on the server; 0 key matches in the client bundle, server build, or served HTML |
 | Types | Generated from the OpenAPI schema (`eie serve openapi`, `npm run gen:api`); a pytest check catches drift |
-| Production timings | Page HTML 3–20 ms; proxied API 6–160 ms; thumbnail about 12 ms |
 | Responsive check | No horizontal overflow at 375 px on any page; light and dark themes |
 | Copilot UI | All event types rendered from a real-tool replay; live Gemini call showed the quota message (free tier exhausted) |
 | Checks | `npm run lint`, `npm run typecheck`, `npm run build` clean; 73 Python tests |
