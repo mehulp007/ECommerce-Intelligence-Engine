@@ -481,6 +481,56 @@
         ]
       }
     },
+    "/api/story/customers": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Story Customers Meta",
+        "description": "An anonymous sample of active customers: axes, names, and layout.",
+        "operationId": "story_customers_meta_api_story_customers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryCustomersMeta"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/story/customers/points": {
+      "get": {
+        "tags": [
+          "customers"
+        ],
+        "summary": "Story Customers Points",
+        "description": "The sample as one binary buffer (position, risk, value, segment).",
+        "operationId": "story_customers_points_api_story_customers_points_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/octet-stream": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/customers/sample": {
       "get": {
         "tags": [
@@ -2425,6 +2475,69 @@
           "median_spend_365d"
         ],
         "title": "Segment"
+      },
+      "StoryCustomersMeta": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "population": {
+            "type": "integer",
+            "title": "Population",
+            "description": "Active customers the sample was drawn from"
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed"
+          },
+          "axes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Axes"
+          },
+          "segments": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Segments",
+            "description": "Segment names by segment ID"
+          },
+          "risk_bands": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Risk Bands",
+            "description": "Names for risk band codes 0..n"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/GalaxyField"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "bytes": {
+            "type": "integer",
+            "title": "Bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "population",
+          "seed",
+          "axes",
+          "segments",
+          "risk_bands",
+          "fields",
+          "bytes"
+        ],
+        "title": "StoryCustomersMeta"
       },
       "ValidationError": {
         "properties": {

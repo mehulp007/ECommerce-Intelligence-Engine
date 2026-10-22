@@ -310,6 +310,40 @@ def create_app(
             },
         )
 
+    def story_or_503(data: ServingStore) -> tuple[dict, bytes]:
+        try:
+            return data.story_customers()
+        except FileNotFoundError:
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                "Run `eie serve prepare` to build the story sample",
+            ) from None
+
+    @app.get(
+        "/api/story/customers",
+        response_model=schemas.StoryCustomersMeta,
+        tags=["customers"],
+        dependencies=secured,
+    )
+    def story_customers_meta(data: Store) -> dict:
+        """An anonymous sample of active customers: axes, names, and layout."""
+        return story_or_503(data)[0]
+
+    @app.get(
+        "/api/story/customers/points",
+        tags=["customers"],
+        dependencies=secured,
+        response_class=Response,
+        responses={200: {"content": {"application/octet-stream": {}}}},
+    )
+    def story_customers_points(data: Store) -> Response:
+        """The sample as one binary buffer (position, risk, value, segment)."""
+        return Response(
+            story_or_503(data)[1],
+            media_type="application/octet-stream",
+            headers={"Cache-Control": "private, max-age=3600"},
+        )
+
     @app.get("/images/{article_id}.webp", tags=["products"], include_in_schema=False)
     def image(article_id: str, data: Store) -> FileResponse:
         path = data.thumbnail(article_id) if len(article_id) == 10 else None

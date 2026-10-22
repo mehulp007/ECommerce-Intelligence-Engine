@@ -5,35 +5,8 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
+import { POINT_FRAGMENT, POINT_VERTEX, pointUniforms } from "@/components/three/point-shader";
 import type { Galaxy } from "@/lib/galaxy";
-
-const VERTEX = /* glsl */ `
-attribute vec3 aColor;
-attribute float aHighlight;
-uniform float uSize;
-uniform float uPixelRatio;
-uniform float uFocus;
-varying vec3 vColor;
-varying float vAlpha;
-void main() {
-  vec4 mv = modelViewMatrix * vec4(position, 1.0);
-  gl_Position = projectionMatrix * mv;
-  float boost = mix(1.0, mix(0.55, 1.8, aHighlight), uFocus);
-  // Points grow as the camera nears, up to a cap so close-ups stay crisp.
-  float size = uSize * uPixelRatio * boost / -mv.z;
-  gl_PointSize = clamp(size, 1.0, uPixelRatio * mix(6.0, 11.0, aHighlight * uFocus));
-  vColor = aColor;
-  vAlpha = mix(0.82, mix(0.05, 1.0, aHighlight), uFocus);
-}`;
-
-const FRAGMENT = /* glsl */ `
-varying vec3 vColor;
-varying float vAlpha;
-void main() {
-  float d = length(gl_PointCoord - 0.5);
-  if (d > 0.5) discard;
-  gl_FragColor = vec4(vColor, vAlpha * smoothstep(0.5, 0.3, d));
-}`;
 
 export const HOME = { position: [0, 0.35, 2.7] as const, target: [0, 0, 0] as const };
 
@@ -59,11 +32,7 @@ interface Props {
 function Points({ galaxy, colours, highlight, onHover }: Omit<Props, "focus" | "autoRotate" | "animate">) {
   const lastMove = useRef(0);
   const material = useRef<THREE.ShaderMaterial>(null);
-  const [uniforms] = useState(() => ({
-    uSize: { value: 9 },
-    uPixelRatio: { value: 1 },
-    uFocus: { value: 0 },
-  }));
+  const [uniforms] = useState(() => pointUniforms());
   const allVisible = useMemo(() => new Float32Array(galaxy.count).fill(1), [galaxy]);
 
   useEffect(() => {
@@ -123,8 +92,8 @@ function Points({ galaxy, colours, highlight, onHover }: Omit<Props, "focus" | "
       </bufferGeometry>
       <shaderMaterial
         ref={material}
-        vertexShader={VERTEX}
-        fragmentShader={FRAGMENT}
+        vertexShader={POINT_VERTEX}
+        fragmentShader={POINT_FRAGMENT}
         uniforms={uniforms}
         transparent
         depthWrite={false}

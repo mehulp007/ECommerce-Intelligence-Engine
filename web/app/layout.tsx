@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { AppShell } from "@/components/app-shell";
 import { Providers } from "@/components/providers";
 
 import "./globals.css";
@@ -22,7 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body className="bg-bg font-sans text-fg">
         <Providers>
-          <AppShell>{children}</AppShell>
+          {children}
         </Providers>
       </body>
     </html>

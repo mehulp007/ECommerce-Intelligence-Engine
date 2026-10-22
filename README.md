@@ -30,6 +30,9 @@ retention campaigns, and answers business questions through an AI analyst. Every
 - **Analyst copilot.** Gemini with function calling over a sandboxed, read-only SQL engine and the
   models above. Results stream into the chat as tables, charts, and product cards.
 - **Model Lab.** Every held-out metric, baseline, ablation, and calibration check, in the app.
+- **The story.** A 3D scroll tour at `/story`: the product Galaxy, two years of sales drawn week by
+  week, the recommender's funnel, a search dive, a live customer-risk cloud with a budget slider, and a
+  recorded copilot run. Every number on it comes from the API.
 
 ## Results
 
@@ -90,7 +93,7 @@ flowchart LR
 | AI | Google Gemini (google-genai), function calling |
 | Backend | FastAPI, Pydantic, Typer CLI |
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query, Recharts, three.js (React Three Fiber) |
-| Ops | GitHub Actions, Docker Compose, pytest, Ruff, Black, ESLint |
+| Ops | GitHub Actions, Docker Compose, pytest, Playwright, Ruff, Black, ESLint |
 
 ## Getting started
 
@@ -117,6 +120,7 @@ powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 ```
 
 **3. Run.** Starts the API and the web app and opens **http://127.0.0.1:3000**. Press Ctrl+C to stop.
+The guided tour is at **http://127.0.0.1:3000/story**.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\start.ps1

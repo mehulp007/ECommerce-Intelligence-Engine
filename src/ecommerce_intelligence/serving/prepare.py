@@ -13,6 +13,8 @@ import json
 import time
 from datetime import UTC, datetime
 
+import pandas as pd
+
 from ecommerce_intelligence.data.duck import connect, sql_path
 from ecommerce_intelligence.paths import ProjectPaths
 
@@ -111,13 +113,20 @@ def build(paths: ProjectPaths, *, log=print) -> dict:
     timings["copilot_database"] = round(time.perf_counter() - started, 1)
     log(f"copilot database: {timings['copilot_database']}s")
 
+    from ecommerce_intelligence.serving.story import META_FILE, build_story_sample
+
+    started = time.perf_counter()
+    build_story_sample(pd.read_parquet(out / "customer_scores.parquet"), out)
+    timings["story_sample"] = round(time.perf_counter() - started, 1)
+    log(f"story sample: {timings['story_sample']}s")
+
     files = {
         path.name: {
             "bytes": path.stat().st_size,
             "modified": datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat(),
         }
         for path in sorted(out.glob("*.parquet"))
-        + [out / "overview.json", out / "copilot.duckdb"]
+        + [out / "overview.json", out / "copilot.duckdb", out / META_FILE]
     }
     manifest = {
         "built_at": datetime.now(UTC).isoformat(),

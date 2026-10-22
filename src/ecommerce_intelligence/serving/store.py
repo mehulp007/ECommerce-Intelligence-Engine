@@ -19,6 +19,8 @@ from ecommerce_intelligence.data.duck import sql_path
 from ecommerce_intelligence.paths import ProjectPaths
 from ecommerce_intelligence.search.galaxy import GalaxyLayout
 from ecommerce_intelligence.serving.prepare import serving_dir
+from ecommerce_intelligence.serving.story import META_FILE as STORY_META
+from ecommerce_intelligence.serving.story import POINTS_FILE as STORY_POINTS
 
 ARTICLE_COLUMNS = (
     "article_id, prod_name, product_type_name, product_group_name, "
@@ -89,6 +91,7 @@ class ServingStore:
         self.has_thumbnail = self._thumbnail_ids()
         self._galaxy: tuple[dict, bytes] | None = None
         self._galaxy_lock = threading.Lock()
+        self._story: tuple[dict, bytes] | None = None
 
     def _thumbnail_ids(self) -> set[str]:
         root = self.paths.thumbnails
@@ -150,6 +153,19 @@ class ServingStore:
                 }
                 self._galaxy = (meta, payload)
             return self._galaxy
+
+    def story_customers(self) -> tuple[dict, bytes]:
+        """The anonymous customer sample for the story page (see serving/story.py).
+
+        Raises FileNotFoundError until `eie serve prepare` has written it.
+        """
+        if self._story is None:
+            meta = json.loads((self.dir / STORY_META).read_text(encoding="utf-8"))
+            payload = (self.dir / STORY_POINTS).read_bytes()
+            if len(payload) != meta["bytes"]:
+                raise ValueError(f"{STORY_POINTS} does not match its metadata")
+            self._story = (meta, payload)
+        return self._story
 
     def thumbnail(self, article_id: str) -> Path | None:
         if article_id not in self.has_thumbnail:

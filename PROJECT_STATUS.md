@@ -4,7 +4,7 @@ Last updated: 2026-10-23
 
 ## Current phase
 
-**All build phases complete.** A design upgrade is under way in five stages: Graphite Mint restyle (done), Product Galaxy (done), 3D scroll story, UX extras, and a README GIF.
+**All build phases complete.** A design upgrade is under way in five stages: Graphite Mint restyle (done), Product Galaxy (done), 3D scroll story (done), UX extras, and a README GIF.
 
 ## Phase log
 
@@ -136,6 +136,20 @@ validation week rather than the held-out week.
 | Performance | three.js (941 KB uncompressed) loads only with the Galaxy scene, not in any page's initial JavaScript; phones load every third product (35,181) |
 | Tests | 7 new (layout order and codes, determinism, scaling, truncated files, API buffer against the layout and sales, 503); 82 in total |
 | CI fix | The lifetime-value fits occasionally stopped with L-BFGS-B "ABNORMAL" on the tiny synthetic test data (rounding noise from parallel sums); they now polish with Powell before failing. Full-data results are unchanged because L-BFGS-B already converges there |
+
+## Design stage 3 — 3D scroll story
+
+| Item | Value |
+|---|---|
+| Page | `/story`, full screen outside the app shell (app pages moved into an `(app)` route group; URLs unchanged); linked from the sidebar |
+| Scenes | 1 Galaxy hero; 2 weekly revenue as stacked online/store columns drawn in left to right, with the store-closure weeks marked; 3 six candidate sources converging on a ranker and 12 slots; 4 a typed query diving to its 50 matches in their real garment colours; 5 a 30,000-customer risk cloud with a live budget slider; 6 a recorded copilot run; 7 held-out results |
+| Engine | One React Three Fiber canvas with four actors that crossfade on scroll position; a camera rig eases between shots; native scrolling (no scroll-jacking library); all text is HTML |
+| Data | New `serving/story.py` writes an anonymous 30,000-customer sample (no IDs; 22 bytes each) during `eie serve prepare`, served by `GET /api/story/customers` and `/points`; all other figures come from existing endpoints |
+| Copilot replay | A real run (gemini-3.8-flash, 79 s, 14.7k tokens) on monthly online share in 2020; every figure matched an independent warehouse query |
+| Finding surfaced | At a 300-unit budget, only 5.2% of the 60,000 customers the planner contacts are high risk; their median predicted value is 5× the active average |
+| Accessibility | Reduced motion gives a static, stacked page with a 2D chart and no WebGL; phones load lighter samples and a compact copilot card; `?capture=1` hides product photos for recordings |
+| Performance | About 95 fps while scrolling (integrated Intel GPU, Chrome, dev build); heap stable at 39–41 MB across six full passes after GC |
+| Tests | 3 new (sample contents and anonymity, axis direction, API); 85 in total |
 
 ## Known data facts
 

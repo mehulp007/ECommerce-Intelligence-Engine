@@ -90,6 +90,7 @@ export interface ModelReports {
     validation_customers: number;
     validation_pairs: number;
     candidates_per_customer: number;
+    candidate_sizes: Record<string, number>;
     candidate_recall: Record<string, number>;
     results: Record<string, Metrics>;
     ablations: Record<string, Metrics>;

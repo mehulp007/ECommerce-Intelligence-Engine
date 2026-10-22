@@ -206,3 +206,12 @@ def test_galaxy_is_503_until_the_map_is_built(client, monkeypatch) -> None:
         response = client.get(route, headers=AUTH)
         assert response.status_code == 503
         assert "eie search galaxy" in response.json()["detail"]
+
+
+def test_story_customer_sample_is_served_as_metadata_and_points(client) -> None:
+    assert client.get("/api/story/customers").status_code == 401
+    meta = client.get("/api/story/customers", headers=AUTH).json()
+    points = client.get("/api/story/customers/points", headers=AUTH)
+    assert points.headers["content-type"] == "application/octet-stream"
+    assert len(points.content) == meta["bytes"] == meta["count"] * 22
+    assert meta["risk_bands"] == ["low", "medium", "high"]

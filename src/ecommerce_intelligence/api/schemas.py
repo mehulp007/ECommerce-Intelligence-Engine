@@ -208,6 +208,17 @@ class GalaxyMeta(BaseModel):
     built_at: str
 
 
+class StoryCustomersMeta(BaseModel):
+    count: int
+    population: int = Field(description="Active customers the sample was drawn from")
+    seed: int
+    axes: dict[str, str]
+    segments: dict[str, str] = Field(description="Segment names by segment ID")
+    risk_bands: list[str] = Field(description="Names for risk band codes 0..n")
+    fields: list[GalaxyField]
+    bytes: int
+
+
 class CopilotStatus(BaseModel):
     configured: bool
     model: str

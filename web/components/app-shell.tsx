@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Megaphone,
   Orbit,
+  Play,
   Menu,
   PieChart,
   Shirt,
@@ -115,6 +116,24 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+function StoryLink({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <Link
+      href="/story"
+      onClick={onNavigate}
+      className="group flex items-center gap-2.5 rounded-xl border border-accent/25 bg-accent-soft px-3 py-2.5 text-sm transition-colors hover:border-accent/50"
+    >
+      <span className="flex size-6 items-center justify-center rounded-md bg-accent text-accent-fg">
+        <Play className="size-3 fill-current" aria-hidden />
+      </span>
+      <span className="leading-tight">
+        <span className="block font-medium text-fg">Watch the story</span>
+        <span className="block text-xs text-muted">A 2-minute scroll tour</span>
+      </span>
+    </Link>
+  );
+}
+
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-2.5">
@@ -138,6 +157,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="px-2">
           <Brand />
         </div>
+        <StoryLink />
         <NavLinks />
         <div className="mt-auto">
           <ApiStatus />
@@ -170,6 +190,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <X className="size-5" />
                 </button>
               </div>
+              <StoryLink onNavigate={() => setOpen(false)} />
               <NavLinks onNavigate={() => setOpen(false)} />
               <div className="mt-auto">
                 <ApiStatus />

@@ -189,6 +189,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/story/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Story Customers Meta
+         * @description An anonymous sample of active customers: axes, names, and layout.
+         */
+        get: operations["story_customers_meta_api_story_customers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/story/customers/points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Story Customers Points
+         * @description The sample as one binary buffer (position, risk, value, segment).
+         */
+        get: operations["story_customers_points_api_story_customers_points_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customers/sample": {
         parameters: {
             query?: never;
@@ -789,6 +829,38 @@ export interface components {
             /** Median Spend 365D */
             median_spend_365d: number | null;
         };
+        /** StoryCustomersMeta */
+        StoryCustomersMeta: {
+            /** Count */
+            count: number;
+            /**
+             * Population
+             * @description Active customers the sample was drawn from
+             */
+            population: number;
+            /** Seed */
+            seed: number;
+            /** Axes */
+            axes: {
+                [key: string]: string;
+            };
+            /**
+             * Segments
+             * @description Segment names by segment ID
+             */
+            segments: {
+                [key: string]: string;
+            };
+            /**
+             * Risk Bands
+             * @description Names for risk band codes 0..n
+             */
+            risk_bands: string[];
+            /** Fields */
+            fields: components["schemas"]["GalaxyField"][];
+            /** Bytes */
+            bytes: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -1049,6 +1121,46 @@ export interface operations {
         };
     };
     galaxy_points_api_galaxy_points_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
+                };
+            };
+        };
+    };
+    story_customers_meta_api_story_customers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryCustomersMeta"];
+                };
+            };
+        };
+    };
+    story_customers_points_api_story_customers_points_get: {
         parameters: {
             query?: never;
             header?: never;
