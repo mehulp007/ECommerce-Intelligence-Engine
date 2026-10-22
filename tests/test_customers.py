@@ -276,3 +276,37 @@ def test_pipeline_end_to_end(synthetic) -> None:
     assert abs(first["driver1_log_odds"]) >= abs(first["driver2_log_odds"])
     assert set(scores.loc[active, "risk_band"]) <= {"low", "medium", "high"}
     assert (synthetic.artifacts / "customers" / "churn_xgboost.json").is_file()
+
+
+def test_fits_recover_from_a_line_search_stop_but_still_report_failure(
+    monkeypatch,
+) -> None:
+    from types import SimpleNamespace
+
+    from ecommerce_intelligence.customers import clv
+
+    rng = np.random.default_rng(3)
+    summary = pd.DataFrame(
+        {"frequency": rng.integers(1, 8, 400), "monetary": rng.gamma(4, 0.01, 400)}
+    )
+    real = clv.minimize
+    calls = []
+
+    def flaky(objective, x0, args, method, bounds):
+        calls.append(method)
+        result = real(objective, x0=x0, args=args, method=method, bounds=bounds)
+        if method == "L-BFGS-B":  # Simulate ABNORMAL_TERMINATION_IN_LNSRCH.
+            return SimpleNamespace(x=result.x, success=False, message="ABNORMAL")
+        return result
+
+    monkeypatch.setattr(clv, "minimize", flaky)
+    model = clv.GammaGammaModel.fit(summary)
+    assert calls == ["L-BFGS-B", "Powell"]
+    assert np.isfinite([model.p, model.q, model.v]).all()
+
+    def broken(objective, x0, args, method, bounds):
+        return SimpleNamespace(x=np.asarray(x0), success=False, message="diverged")
+
+    monkeypatch.setattr(clv, "minimize", broken)
+    with pytest.raises(RuntimeError, match="Gamma-Gamma fit failed: diverged"):
+        clv.GammaGammaModel.fit(summary)

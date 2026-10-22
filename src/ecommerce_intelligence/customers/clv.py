@@ -38,6 +38,23 @@ def rfm_summary(con: duckdb.DuckDBPyConnection, as_of: str) -> pd.DataFrame:
     return frame
 
 
+def _minimise(objective, x0, args, bounds, label: str) -> np.ndarray:
+    """Bounded maximum likelihood, robust to line-search stops near the optimum.
+
+    L-BFGS-B can end with ABNORMAL when rounding noise (for example from
+    parallel sums) defeats its line search; a derivative-free Powell polish
+    from the same point settles it. A real failure still raises.
+    """
+    result = minimize(objective, x0=x0, args=args, method="L-BFGS-B", bounds=bounds)
+    if not result.success:
+        result = minimize(
+            objective, x0=result.x, args=args, method="Powell", bounds=bounds
+        )
+    if not result.success or not np.all(np.isfinite(result.x)):
+        raise RuntimeError(f"{label} fit failed: {result.message}")
+    return result.x
+
+
 @dataclass
 class BetaGeoModel:
     r: float
@@ -66,16 +83,14 @@ class BetaGeoModel:
         x = summary["frequency"].to_numpy(float)
         t_x = summary["recency"].to_numpy(float)
         T = summary["age"].to_numpy(float)
-        result = minimize(
+        params = _minimise(
             cls._negative_ll,
-            x0=np.log([0.5, 5.0, 0.5, 2.0]),
-            args=(x, t_x, T),
-            method="L-BFGS-B",
-            bounds=[(-8, 6)] * 4,
+            np.log([0.5, 5.0, 0.5, 2.0]),
+            (x, t_x, T),
+            [(-8, 6)] * 4,
+            "BG/NBD",
         )
-        if not result.success:
-            raise RuntimeError(f"BG/NBD fit failed: {result.message}")
-        return cls(*np.exp(result.x))
+        return cls(*np.exp(params))
 
     def p_alive(self, x, t_x, T) -> np.ndarray:
         x, t_x, T = (np.asarray(v, float) for v in (x, t_x, T))
@@ -127,16 +142,14 @@ class GammaGammaModel:
         repeat = summary.loc[summary["frequency"] > 0]
         n = repeat["frequency"].to_numpy(float) + 1
         m = repeat["monetary"].to_numpy(float)
-        result = minimize(
+        params = _minimise(
             cls._negative_ll,
-            x0=np.log([2.0, 3.0, 0.1]),
-            args=(n, m),
-            method="L-BFGS-B",
-            bounds=[(-8, 8)] * 3,
+            np.log([2.0, 3.0, 0.1]),
+            (n, m),
+            [(-8, 8)] * 3,
+            "Gamma-Gamma",
         )
-        if not result.success:
-            raise RuntimeError(f"Gamma-Gamma fit failed: {result.message}")
-        return cls(*np.exp(result.x))
+        return cls(*np.exp(params))
 
     def expected_spend(self, frequency, monetary) -> np.ndarray:
         """Expected spend per visit; one-visit customers get the population mean."""

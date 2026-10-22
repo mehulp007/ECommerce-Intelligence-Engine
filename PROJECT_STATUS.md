@@ -134,7 +134,8 @@ validation week rather than the held-out week.
 | API | `GET /api/galaxy` (names and field layout) and `GET /api/galaxy/points` (one binary buffer, 21 bytes per product, 2.2 MB); 503 until the map is built |
 | Page | `/galaxy`: one GPU point cloud with a custom shader, four colour modes, a legend that filters, search fly-to, hover preview with photo, click to open; "Show in the Galaxy" on every product page rings the product and lights its 39 nearest neighbours |
 | Performance | three.js (941 KB uncompressed) loads only with the Galaxy scene, not in any page's initial JavaScript; phones load every third product (35,181) |
-| Tests | 7 new (layout order and codes, determinism, scaling, truncated files, API buffer against the layout and sales, 503); 81 in total |
+| Tests | 7 new (layout order and codes, determinism, scaling, truncated files, API buffer against the layout and sales, 503); 82 in total |
+| CI fix | The lifetime-value fits occasionally stopped with L-BFGS-B "ABNORMAL" on the tiny synthetic test data (rounding noise from parallel sums); they now polish with Powell before failing. Full-data results are unchanged because L-BFGS-B already converges there |
 
 ## Known data facts
 
