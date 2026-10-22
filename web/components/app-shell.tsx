@@ -137,7 +137,7 @@ function StoryLink({ onNavigate }: { onNavigate?: () => void }) {
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-2.5">
-      <span className="flex size-8 items-center justify-center rounded-lg bg-accent text-accent-fg shadow-[0_0_24px_-6px_rgba(61,220,151,0.6)]">
+      <span className="flex size-8 items-center justify-center rounded-lg bg-accent text-accent-fg shadow-[0_0_24px_-6px_rgba(124,131,253,0.6)]">
         <BarChart3 className="size-4" aria-hidden />
       </span>
       <span className="leading-tight">

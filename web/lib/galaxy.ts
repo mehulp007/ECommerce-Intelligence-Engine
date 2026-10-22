@@ -68,17 +68,17 @@ export async function loadGalaxy(stride = 1): Promise<Galaxy> {
 
 /** Distinct colours for the largest product groups; the rest share grey. */
 const CATEGORY_COLOURS = [
-  "#3ddc97",
-  "#9b8cff",
+  "#7c83fd",
+  "#2dd4bf",
   "#5cc8ff",
   "#f5b547",
   "#ff8fb3",
-  "#7ee0d6",
-  "#c8b6ff",
-  "#ffd27a",
-  "#ff9e7a",
+  "#c4b5fd",
+  "#99f6e4",
+  "#fcd34d",
+  "#fb923c",
 ];
-export const OTHER_COLOUR = "#5a5a5a";
+export const OTHER_COLOUR = "#4a5068";
 
 export const categoryColour = (code: number) => CATEGORY_COLOURS[code] ?? OTHER_COLOUR;
 
@@ -147,14 +147,14 @@ function ramp(t: number, stops: [number, number, number][]): [number, number, nu
 }
 
 const SALES_RAMP: [number, number, number][] = [
-  [0.2, 0.2, 0.22],
-  [0.24, 0.86, 0.59],
-  [0.9, 1, 0.95],
+  [0.17, 0.19, 0.27],
+  [0.18, 0.83, 0.75],
+  [0.9, 1, 0.98],
 ];
 const PRICE_RAMP: [number, number, number][] = [
-  [0.2, 0.2, 0.24],
-  [0.61, 0.55, 1],
-  [0.95, 0.93, 1],
+  [0.17, 0.19, 0.27],
+  [0.49, 0.51, 0.99],
+  [0.93, 0.94, 1],
 ];
 
 function hexToRgb(hex: string): [number, number, number] {

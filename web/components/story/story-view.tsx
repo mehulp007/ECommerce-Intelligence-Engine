@@ -14,7 +14,14 @@ import { getJson, postJson } from "@/lib/api";
 import { compact, date, fixed, int, month, pct, units } from "@/lib/format";
 import { loadGalaxy } from "@/lib/galaxy";
 import { useDebounced } from "@/lib/hooks";
-import { loadStoryCustomers, SCENES, sceneProgress, storyScroll } from "@/lib/story";
+import {
+  loadStoryCustomers,
+  RISK_COLOURS,
+  SCENES,
+  sceneProgress,
+  SOURCE_COLOURS,
+  storyScroll,
+} from "@/lib/story";
 import transcript from "@/lib/story-copilot.json";
 import type { CampaignPlan, ModelReports, Overview, SearchHit } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -46,7 +53,7 @@ function Card({ children, wide = false, className }: { children: ReactNode; wide
   return (
     <div
       className={cn(
-        "w-full rounded-3xl border border-white/10 bg-black/55 p-6 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9)] backdrop-blur-md sm:p-7",
+        "w-full rounded-3xl border border-white/10 bg-[#0b0d14]/60 p-6 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.9)] backdrop-blur-md sm:p-7",
         wide ? "max-w-2xl" : "max-w-md",
         className,
       )}
@@ -261,15 +268,15 @@ export function StoryView() {
     <div className="relative min-h-dvh bg-bg text-fg">
       {!calm && (
         <div className="fixed inset-0" aria-hidden>
-          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 35%, #102019 0%, #0a0a0a 60%)" }} />
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 35%, #151b36 0%, #0b0d14 62%)" }} />
           {/* A soft scrim keeps the text readable over bright points. */}
           <div
             className="pointer-events-none absolute inset-0 z-10 hidden sm:block"
-            style={{ background: "linear-gradient(90deg, rgba(10,10,10,0.82) 0%, rgba(10,10,10,0.35) 40%, transparent 62%)" }}
+            style={{ background: "linear-gradient(90deg, rgba(11,13,20,0.84) 0%, rgba(11,13,20,0.36) 40%, transparent 62%)" }}
           />
           <div
             className="pointer-events-none absolute inset-0 z-10 sm:hidden"
-            style={{ background: "linear-gradient(0deg, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.55) 55%, rgba(10,10,10,0.2) 100%)" }}
+            style={{ background: "linear-gradient(0deg, rgba(11,13,20,0.9) 0%, rgba(11,13,20,0.55) 55%, rgba(11,13,20,0.2) 100%)" }}
           />
           <div className="absolute inset-0">
             <StoryScene
@@ -358,8 +365,8 @@ export function StoryView() {
                 <Figure value={pct(kpis?.online_share, 0)} label="bought online" />
               </div>
               <div className="mt-5 flex gap-4">
-                <Swatch colour="#3ddc97">Online</Swatch>
-                <Swatch colour="#9b8cff">In store</Swatch>
+                <Swatch colour="#7c83fd">Online</Swatch>
+                <Swatch colour="#2dd4bf">In store</Swatch>
                 <Swatch colour="#f5b547">Store closures</Swatch>
               </div>
               {calm && overview.data && (
@@ -392,7 +399,7 @@ export function StoryView() {
               <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1.5">
                 {Object.entries(sourceSizes ?? {}).map(([name, size], i) => (
                   <li key={name}>
-                    <Swatch colour={["#3ddc97", "#9b8cff", "#5cc8ff", "#f5b547", "#ff8fb3", "#7ee0d6"][i % 6]}>
+                    <Swatch colour={SOURCE_COLOURS[i % SOURCE_COLOURS.length]}>
                       {SOURCE_NAMES[name] ?? name} <span className="font-mono text-[10px]">· {size}</span>
                     </Swatch>
                   </li>
@@ -453,9 +460,9 @@ export function StoryView() {
                 purchase in the next 60 days.
               </p>
               <div className="mt-4 flex gap-4">
-                <Swatch colour="#3ddc97">Low risk</Swatch>
-                <Swatch colour="#f5b547">Medium</Swatch>
-                <Swatch colour="#ff6b6b">High</Swatch>
+                <Swatch colour={RISK_COLOURS[0]}>Low risk</Swatch>
+                <Swatch colour={RISK_COLOURS[1]}>Medium</Swatch>
+                <Swatch colour={RISK_COLOURS[2]}>High</Swatch>
               </div>
               <label className="mt-5 block">
                 <div className="flex justify-between text-sm">

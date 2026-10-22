@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
-/* Graphite Mint: one dark theme for the whole app. */
+/* Midnight Indigo: one dark theme for the whole app. */
 :root {
-  --bg: #0a0a0a;
-  --surface: #141414;
-  --surface-2: #1c1c1c;
-  --surface-3: #232323;
-  --border: #262626;
-  --border-strong: #363636;
-  --fg: #f2f2f2;
-  --muted: #8c8c8c;
-  --accent: #3ddc97;
-  --accent-fg: #0a0a0a;
-  --accent-soft: color-mix(in oklab, #3ddc97 14%, #141414);
-  --accent-2: #9b8cff;
-  --good: #3ddc97;
+  --bg: #0b0d14;
+  --surface: #141826;
+  --surface-2: #1b2033;
+  --surface-3: #232a40;
+  --border: #262c40;
+  --border-strong: #343b55;
+  --fg: #e8eaf2;
+  --muted: #8a90a6;
+  --accent: #7c83fd;
+  --accent-fg: #0b0d14;
+  --accent-soft: color-mix(in oklab, #7c83fd 16%, #141826);
+  --accent-2: #2dd4bf;
+  --good: #34d399;
   --warn: #f5b547;
   --bad: #ff6b6b;
-  --chart-1: #3ddc97;
-  --chart-2: #9b8cff;
+  --chart-1: #7c83fd;
+  --chart-2: #2dd4bf;
   --chart-3: #f5b547;
   --chart-4: #ff8fb3;
   --chart-5: #5cc8ff;
-  --chart-6: #d4d4d4;
-  --grid: #222222;
+  --chart-6: #c8cbe0;
+  --grid: #1e2335;
   color-scheme: dark;
 }
 

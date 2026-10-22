@@ -143,8 +143,8 @@ function Legend({
   if (mode === "price" || mode === "sales") {
     const gradient =
       mode === "sales"
-        ? "linear-gradient(90deg, #333338, #3ddc97, #e6fff2)"
-        : "linear-gradient(90deg, #33333d, #9b8cff, #f2eeff)";
+        ? "linear-gradient(90deg, #2b3045, #2dd4bf, #e6fffb)"
+        : "linear-gradient(90deg, #2b3045, #7c83fd, #eef0ff)";
     return (
       <div className="w-56">
         <div className="mb-1.5 text-xs font-medium">{mode === "sales" ? "Items sold, last 4 weeks" : "Median price"}</div>
@@ -189,7 +189,7 @@ function Legend({
         ))}
         {otherCount > 0 && (
           <div className="flex items-center gap-2 px-1.5 py-0.5 text-xs text-muted">
-            <span className="size-2.5 shrink-0 rounded-full" style={{ background: isCategory ? OTHER_COLOUR : "#8c8c8c" }} />
+            <span className="size-2.5 shrink-0 rounded-full" style={{ background: isCategory ? OTHER_COLOUR : "#8a90a6" }} />
             Other
             <span className="ml-auto pl-2 font-mono text-[10px]">{compact(otherCount)}</span>
           </div>
@@ -308,7 +308,7 @@ export function GalaxyView() {
     <div className="relative h-[calc(100dvh-3.6rem)] overflow-hidden lg:h-dvh">
       <div
         className="absolute inset-0"
-        style={{ background: "radial-gradient(ellipse at 50% 40%, #12201a 0%, #0a0a0a 55%)" }}
+        style={{ background: "radial-gradient(ellipse at 50% 40%, #151b36 0%, #0b0d14 58%)" }}
         aria-hidden
       />
       {g ? (

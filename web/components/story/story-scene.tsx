@@ -6,7 +6,15 @@ import * as THREE from "three";
 
 import { POINT_FRAGMENT, POINT_VERTEX, pointUniforms } from "@/components/three/point-shader";
 import { pointColours, type Galaxy } from "@/lib/galaxy";
-import { sceneProgress, sceneWeight, smoothstep, storyScroll, type StoryCustomers } from "@/lib/story";
+import {
+  RISK_COLOURS,
+  sceneProgress,
+  sceneWeight,
+  smoothstep,
+  SOURCE_COLOURS,
+  storyScroll,
+  type StoryCustomers,
+} from "@/lib/story";
 import type { Overview } from "@/lib/types";
 
 /** World-space points the camera rig can look at, written by the actors. */
@@ -29,8 +37,8 @@ function hex(colour: string): [number, number, number] {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }
 
-const MINT = "#3ddc97";
-const VIOLET = "#9b8cff";
+const INDIGO = "#7c83fd";
+const TEAL = "#2dd4bf";
 
 interface ParticlesProps {
   positions: Float32Array;
@@ -140,19 +148,19 @@ function TimelineActor({ overview }: { overview: Overview }) {
     const next = random(11);
     const xs: number[] = [];
     const cs: number[] = [];
-    const mint = hex(MINT);
-    const violet = hex(VIOLET);
+    const online = hex(INDIGO);
+    const store = hex(TEAL);
     const column = 3.2 / weeks.length;
     weeks.forEach((week, i) => {
       // One column per week: its height is revenue, online at the bottom and
-      // store sales stacked on top, so weeks without store sales are all mint.
+      // store sales stacked on top, so weeks without store sales are all indigo.
       const height = week.revenue_units / peak;
       const count = Math.round(height * 190) + 6;
       const centre = -1.6 + column * (i + 0.5);
       for (let k = 0; k < count; k++) {
         const level = next();
         xs.push(centre + (next() - 0.5) * column * 0.7, -0.6 + level * height * 1.2, (next() - 0.5) * 0.12);
-        cs.push(...(level < week.online_share ? mint : violet));
+        cs.push(...(level < week.online_share ? online : store));
       }
     });
     // Weeks with essentially no store sales, as found on the Overview page.
@@ -194,7 +202,6 @@ function TimelineActor({ overview }: { overview: Overview }) {
   );
 }
 
-const SOURCE_COLOURS = ["#3ddc97", "#9b8cff", "#5cc8ff", "#f5b547", "#ff8fb3", "#7ee0d6"];
 const POOL = new THREE.Vector3(-0.35, 0, 0);
 const RANKER = new THREE.Vector3(0.35, 0, 0);
 
@@ -271,13 +278,13 @@ function FunnelActor({ sizes }: { sizes: number[] }) {
       <Particles points={points} positions={plan.positions} colours={plan.colours} size={14} />
       <mesh ref={ring} position={RANKER}>
         <torusGeometry args={[0.18, 0.006, 12, 96]} />
-        <meshBasicMaterial color={MINT} transparent opacity={0} depthWrite={false} />
+        <meshBasicMaterial color={INDIGO} transparent opacity={0} depthWrite={false} />
       </mesh>
       <group ref={slots}>
         {Array.from({ length: 12 }, (_, s) => (
           <mesh key={s} position={slot(s)}>
             <planeGeometry args={[0.12, 0.18]} />
-            <meshBasicMaterial color={MINT} transparent opacity={0} depthWrite={false} />
+            <meshBasicMaterial color={INDIGO} transparent opacity={0} depthWrite={false} />
           </mesh>
         ))}
       </group>
@@ -285,7 +292,6 @@ function FunnelActor({ sizes }: { sizes: number[] }) {
   );
 }
 
-const RISK_COLOURS = ["#3ddc97", "#f5b547", "#ff6b6b"];
 
 function CustomersActor({ customers, targeted }: { customers: StoryCustomers; targeted: number[] }) {
   const points = useRef<THREE.Points>(null);
@@ -298,7 +304,7 @@ function CustomersActor({ customers, targeted }: { customers: StoryCustomers; ta
       scaled[i * 3 + 2] = customers.positions[i * 3 + 2] * 1.0;
     }
     const c = new Float32Array(customers.count * 3);
-    for (let i = 0; i < customers.count; i++) c.set(hex(RISK_COLOURS[customers.risk[i]] ?? "#8c8c8c"), i * 3);
+    for (let i = 0; i < customers.count; i++) c.set(hex(RISK_COLOURS[customers.risk[i]] ?? "#8a90a6"), i * 3);
     return { positions: scaled, colours: c };
   }, [customers]);
   const highlight = useMemo(() => {

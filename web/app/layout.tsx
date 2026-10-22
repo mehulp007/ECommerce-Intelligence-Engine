@@ -8,7 +8,7 @@ import "./globals.css";
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
-export const viewport: Viewport = { themeColor: "#0a0a0a", colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: "#0b0d14", colorScheme: "dark" };
 
 export const metadata: Metadata = {
   title: { default: "E-Commerce Intelligence Engine", template: "%s · Intelligence Engine" },

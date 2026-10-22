@@ -4,7 +4,7 @@ Last updated: 2026-10-23
 
 ## Current phase
 
-**All build phases complete.** A design upgrade is under way in five stages: Graphite Mint restyle (done), Product Galaxy (done), 3D scroll story (done), UX extras, and a README GIF.
+**All build phases complete.** A design upgrade is under way in five stages: dark restyle (done; now Midnight Indigo), Product Galaxy (done), 3D scroll story (done), UX extras, and a README GIF.
 
 ## Phase log
 
@@ -113,14 +113,14 @@ validation week rather than the held-out week.
 | Tests | 74 Python tests, including the build order; they also pass without PyTorch, as CI runs them |
 | README | Rewritten: features, held-out results, architecture, stack, three-step setup |
 
-## Design stage 1 — Graphite Mint restyle
+## Design stage 1 — dark restyle
 
 | Item | Value |
 |---|---|
-| Theme | One dark theme: graphite surfaces (#0A0A0A, #141414, #1C1C1C), mint accent #3DDC97, violet #9B8CFF; the light/dark toggle was removed |
+| Theme | One dark theme; the light/dark toggle was removed. First Graphite Mint, then switched to Midnight Indigo after stage 3: surfaces #0B0D14, #141826, #1B2033; indigo accent #7C83FD with dark text on it; teal #2DD4BF and amber #F5B547 as supporting colours; green, amber, and red only for status |
 | Typography | Geist Sans for text; Geist Mono for headline numbers and chart axes |
-| Contrast | All text and accent pairs pass WCAG AA (lowest 5.07:1, muted text on raised surfaces) |
-| Components | Cards, stats, buttons, inputs, chips, badges, charts, product cards, and a grouped sidebar with a mint active indicator; pages fade in unless reduced motion is set |
+| Contrast | All text and accent pairs pass WCAG AA in Midnight Indigo (lowest 5.01:1, indigo on raised surfaces; muted text 5.09:1) |
+| Components | Cards, stats, buttons, inputs, chips, badges, charts, product cards, and a grouped sidebar with an accent active indicator; pages fade in unless reduced motion is set |
 | Responsive check | No horizontal overflow at 375 px on any of the 9 routes checked |
 | Security | Next.js upgraded 16.4.0 → 16.4.2 for a critical advisory (GHSA-2464-fhr4-w9xw); `npm audit --omit=dev` reports 0 vulnerabilities |
 

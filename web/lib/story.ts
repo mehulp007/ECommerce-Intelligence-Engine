@@ -51,6 +51,11 @@ export async function loadStoryCustomers(stride = 1): Promise<StoryCustomers> {
 
 export const SCENES = 7;
 
+/** Colours for the recommender's six candidate sources, in report order. */
+export const SOURCE_COLOURS = ["#7c83fd", "#2dd4bf", "#5cc8ff", "#f5b547", "#ff8fb3", "#c4b5fd"];
+/** Low, medium, and high inactivity risk. */
+export const RISK_COLOURS = ["#34d399", "#f5b547", "#ff6b6b"];
+
 /**
  * Where the reader is in the story, shared by the HTML and the 3D scene
  * without React re-renders: `position` runs from 0 to SCENES, and its integer

@@ -170,7 +170,7 @@ export default function GalaxyScene(props: Props) {
         <Billboard position={props.marker}>
           <mesh>
             <ringGeometry args={[0.009, 0.012, 48]} />
-            <meshBasicMaterial color="#3ddc97" transparent opacity={0.95} depthTest={false} />
+            <meshBasicMaterial color="#7c83fd" transparent opacity={0.95} depthTest={false} />
           </mesh>
         </Billboard>
       )}
