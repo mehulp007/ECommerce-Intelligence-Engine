@@ -14,6 +14,8 @@ npm run gen:api    # regenerate lib/api-schema.ts from lib/openapi.json
 ```
 
 - **Pages:** `app/` holds thin route files; each renders a client view from `components/views/`.
+- **3D:** `components/galaxy/` holds the three.js scene (React Three Fiber). It is imported dynamically,
+  so only the Galaxy page downloads it; `lib/galaxy.ts` decodes the binary map from the API.
 - **API access:** the browser only calls this app. `app/api/[...path]/route.ts` forwards requests to
   FastAPI and adds the bearer key on the server, and `app/images/[file]/route.ts` serves thumbnails.
   The key is read from `EIE_API_KEY`, or from the repository's `.env`.

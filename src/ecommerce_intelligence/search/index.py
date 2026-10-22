@@ -18,6 +18,25 @@ IMAGE_WEIGHT = 0.7
 TEXT_WEIGHT = 0.3
 
 
+def joint_vectors(e: ArticleEmbeddings) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Mean-centred photo and description vectors, weighted and concatenated.
+
+    Returns the joint matrix with the photo and text means used to centre it.
+    One inner product on these rows equals
+    IMAGE_WEIGHT * cos(query, photo) + TEXT_WEIGHT * cos(query, text).
+    """
+    image = np.where(e.has_image[:, None], e.image, e.text)
+    image_mean = image.mean(axis=0)
+    text_mean = e.text.mean(axis=0)
+    joint = np.hstack(
+        [
+            normalize(image - image_mean) * np.sqrt(IMAGE_WEIGHT),
+            normalize(e.text - text_mean) * np.sqrt(TEXT_WEIGHT),
+        ]
+    ).astype(np.float32)
+    return joint, image_mean, text_mean
+
+
 @dataclass
 class SearchHit:
     article_id: str
@@ -35,17 +54,7 @@ class ProductIndex:
         self.items = np.ascontiguousarray(e.item, dtype=np.float32)
         self.similar_index = faiss.IndexFlatIP(self.items.shape[1])
         self.similar_index.add(self.items)
-        # Concatenating weighted halves makes one inner product equal to
-        # IMAGE_WEIGHT * cos(query, photo) + TEXT_WEIGHT * cos(query, text).
-        image = np.where(e.has_image[:, None], e.image, e.text)
-        self.image_mean = image.mean(axis=0)
-        self.text_mean = e.text.mean(axis=0)
-        joint = np.hstack(
-            [
-                normalize(image - self.image_mean) * np.sqrt(IMAGE_WEIGHT),
-                normalize(e.text - self.text_mean) * np.sqrt(TEXT_WEIGHT),
-            ]
-        ).astype(np.float32)
+        joint, self.image_mean, self.text_mean = joint_vectors(e)
         self.text_index = faiss.IndexFlatIP(joint.shape[1])
         self.text_index.add(np.ascontiguousarray(joint))
 

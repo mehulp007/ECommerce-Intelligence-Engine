@@ -11,6 +11,7 @@ def test_build_runs_every_pipeline_in_dependency_order(monkeypatch) -> None:
         "data_all",
         "search_embed",
         "search_evaluate",
+        "search_galaxy",
         "recsys_train",
         "customers_train",
         "serve_prepare",
@@ -20,11 +21,12 @@ def test_build_runs_every_pipeline_in_dependency_order(monkeypatch) -> None:
         )
     result = CliRunner().invoke(cli.app, ["build", "--trials", "3", "--no-ablations"])
     assert result.exit_code == 0, result.output
-    # Embeddings feed the recommender and segments; scores feed the serving build.
+    # Embeddings feed the map, recommender, and segments; scores feed serving.
     assert [name for name, _ in calls] == [
         "data_all",
         "search_embed",
         "search_evaluate",
+        "search_galaxy",
         "recsys_train",
         "customers_train",
         "serve_prepare",

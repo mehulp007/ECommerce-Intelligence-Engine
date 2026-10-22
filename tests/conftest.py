@@ -17,6 +17,7 @@ from ecommerce_intelligence.data.images import thumbnail_path
 from ecommerce_intelligence.data.warehouse import build_warehouse
 from ecommerce_intelligence.paths import ProjectPaths
 from ecommerce_intelligence.recsys.pipeline import run as run_recsys
+from ecommerce_intelligence.search.galaxy import build_layout, pca_reducer
 from ecommerce_intelligence.serving.prepare import build
 
 ARTICLES_CSV = (
@@ -98,4 +99,5 @@ def world(tmp_path_factory) -> ProjectPaths:
         target.parent.mkdir(parents=True, exist_ok=True)
         Image.new("RGB", (8, 12), "white").save(target, format="WEBP")
     build(paths, log=lambda _: None)
+    build_layout(paths, reducer=pca_reducer, log=lambda _: None)
     return paths

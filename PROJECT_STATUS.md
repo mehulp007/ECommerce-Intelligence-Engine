@@ -4,7 +4,7 @@ Last updated: 2026-10-23
 
 ## Current phase
 
-**All build phases complete.** A design upgrade is under way in five stages: Graphite Mint restyle (done), Product Galaxy, 3D scroll story, UX extras, and a README GIF.
+**All build phases complete.** A design upgrade is under way in five stages: Graphite Mint restyle (done), Product Galaxy (done), 3D scroll story, UX extras, and a README GIF.
 
 ## Phase log
 
@@ -123,6 +123,18 @@ validation week rather than the held-out week.
 | Components | Cards, stats, buttons, inputs, chips, badges, charts, product cards, and a grouped sidebar with a mint active indicator; pages fade in unless reduced motion is set |
 | Responsive check | No horizontal overflow at 375 px on any of the 9 routes checked |
 | Security | Next.js upgraded 16.4.0 → 16.4.2 for a critical advisory (GHSA-2464-fhr4-w9xw); `npm audit --omit=dev` reports 0 vulnerabilities |
+
+## Design stage 2 — Product Galaxy
+
+| Item | Value |
+|---|---|
+| Layout | Joint photo and description vectors (shared with text search via `joint_vectors`), PCA to 50, then UMAP to 3 (30 neighbours, min_dist 0.15, cosine, seed 42), scaled so 99% of points fall within radius 1 |
+| Build | `eie search galaxy`: 105,542 products in 96.8 s on CPU; part of `eie build`; UMAP lives in a separate `galaxy` extra so the API image stays lean |
+| Neighbourhood quality | 92.2% of each product's 10 nearest map neighbours share its product group (23.3% by chance); 60.3% share its colour group (8.2% by chance) |
+| API | `GET /api/galaxy` (names and field layout) and `GET /api/galaxy/points` (one binary buffer, 21 bytes per product, 2.2 MB); 503 until the map is built |
+| Page | `/galaxy`: one GPU point cloud with a custom shader, four colour modes, a legend that filters, search fly-to, hover preview with photo, click to open; "Show in the Galaxy" on every product page rings the product and lights its 39 nearest neighbours |
+| Performance | three.js (941 KB uncompressed) loads only with the Galaxy scene, not in any page's initial JavaScript; phones load every third product (35,181) |
+| Tests | 7 new (layout order and codes, determinism, scaling, truncated files, API buffer against the layout and sales, 503); 81 in total |
 
 ## Known data facts
 

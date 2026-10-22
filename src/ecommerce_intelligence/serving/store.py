@@ -11,11 +11,13 @@ import threading
 from pathlib import Path
 
 import duckdb
+import numpy as np
 import pandas as pd
 
 from ecommerce_intelligence.customers import campaign
 from ecommerce_intelligence.data.duck import sql_path
 from ecommerce_intelligence.paths import ProjectPaths
+from ecommerce_intelligence.search.galaxy import GalaxyLayout
 from ecommerce_intelligence.serving.prepare import serving_dir
 
 ARTICLE_COLUMNS = (
@@ -85,6 +87,8 @@ class ServingStore:
             FROM scores WHERE churn_probability IS NOT NULL
             """)
         self.has_thumbnail = self._thumbnail_ids()
+        self._galaxy: tuple[dict, bytes] | None = None
+        self._galaxy_lock = threading.Lock()
 
     def _thumbnail_ids(self) -> set[str]:
         root = self.paths.thumbnails
@@ -97,6 +101,55 @@ class ServingStore:
             return cursor.execute(sql, params or []).df()
         finally:
             cursor.close()
+
+    def galaxy(self) -> tuple[dict, bytes]:
+        """The product map as metadata and one binary buffer, built on first use.
+
+        The buffer holds, in point order: float32 x/y/z, uint32 article ID,
+        uint8 product-group and colour codes, uint16 items sold in the last
+        4 weeks, and a uint8 price percentile (0-255).
+        Raises FileNotFoundError until `eie search galaxy` has run.
+        """
+        with self._galaxy_lock:
+            if self._galaxy is None:
+                layout = GalaxyLayout.load(self.paths.embeddings)
+                n = layout.meta["count"]
+                ids = [f"{i:010d}" for i in layout.article_ids]
+                stats = (
+                    self.query(
+                        "SELECT article_id, sales_4w, median_price FROM product_stats"
+                    )
+                    .set_index("article_id")
+                    .reindex(ids)
+                )
+                sales = stats["sales_4w"].fillna(0).clip(0, 65535).to_numpy("<u2")
+                price = stats["median_price"].rank(pct=True).fillna(0) * 255
+                payload = b"".join(
+                    [
+                        (self.paths.embeddings / "galaxy.bin").read_bytes(),
+                        sales.tobytes(),
+                        price.round().to_numpy(np.uint8).tobytes(),
+                    ]
+                )
+                fields = [
+                    ("position", "float32", 0, n * 3),
+                    ("article_id", "uint32", n * 12, n),
+                    ("group", "uint8", n * 16, n),
+                    ("colour", "uint8", n * 17, n),
+                    ("sales_4w", "uint16", n * 18, n),
+                    ("price_rank", "uint8", n * 20, n),
+                ]
+                meta = {
+                    **layout.meta,
+                    "fields": [
+                        {"name": a, "dtype": b, "offset": c, "length": d}
+                        for a, b, c, d in fields
+                    ],
+                    "sales_4w_max": int(sales.max(initial=0)),
+                    "bytes": len(payload),
+                }
+                self._galaxy = (meta, payload)
+            return self._galaxy
 
     def thumbnail(self, article_id: str) -> Path | None:
         if article_id not in self.has_thumbnail:

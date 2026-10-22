@@ -20,6 +20,9 @@ retention campaigns, and answers business questions through an AI analyst. Every
   taste, feed a LightGBM LambdaRank model. Every recommendation carries its reason.
 - **Visual and text search.** FashionCLIP embeds every photo and description. Search with a sentence
   ("red floral summer dress") or find products that look alike.
+- **Product Galaxy.** An interactive 3D map of all 105,542 products, laid out by UMAP so similar items
+  sit together. Colour it by category, garment colour, price, or recent sales; search to fly to the
+  matches; hover for the photo; click to open the product.
 - **Customer 360.** Risk of going inactive with its SHAP drivers, predicted 180-day value, segment,
   purchase timeline, and personal recommendations for any of 1.37M customers.
 - **Campaign simulator.** Ranks customers by expected value saved for a given budget, cost, and offer,
@@ -38,6 +41,7 @@ All results are on data the models never saw during training.
 | Inactivity model, May–Jul 2020 (2.96M customer-months) | **ROC AUC 0.795**, average precision 0.857 | 0.789 logistic regression; 0.701 recency only |
 | 180-day value, 181-day holdout | **Spend correlation 0.668**, MAE 0.139 | 0.636 and 0.145, repeating the previous period |
 | Text-to-product search, 12 labelled queries | **Precision@10 0.95** | 0.22 before correcting CLIP's modality gap |
+| Product Galaxy, 10 nearest neighbours on the map | **92.2% same product group**, 60.3% same colour | 23.3% and 8.2% by chance |
 | Copilot SQL guard | **15 of 15** attack queries blocked | |
 
 The recommender scores 4.0× the best-seller baseline. For context, the competition's winning score was
@@ -48,7 +52,7 @@ about 0.037 on a different, hidden week.
 ```mermaid
 flowchart LR
     D["H&M data<br/>31.8M purchases, 105k photos"] --> W["DuckDB warehouse<br/>typed Parquet"]
-    D --> E["FashionCLIP embeddings<br/>FAISS"]
+    D --> E["FashionCLIP embeddings<br/>FAISS, UMAP 3D map"]
     W --> R["Recommender<br/>candidates + LightGBM ranker"]
     W --> C["Customer models<br/>churn, lifetime value, segments"]
     E --> R
@@ -82,10 +86,10 @@ flowchart LR
 |---|---|
 | Data | DuckDB, Parquet (PyArrow), pandas |
 | Machine learning | LightGBM, XGBoost, Optuna, implicit (ALS), scikit-learn, SHAP via XGBoost |
-| Vision and search | FashionCLIP (PyTorch, Transformers), FAISS |
+| Vision and search | FashionCLIP (PyTorch, Transformers), FAISS, UMAP |
 | AI | Google Gemini (google-genai), function calling |
 | Backend | FastAPI, Pydantic, Typer CLI |
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query, Recharts |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query, Recharts, three.js (React Three Fiber) |
 | Ops | GitHub Actions, Docker Compose, pytest, Ruff, Black, ESLint |
 
 ## Getting started
@@ -106,7 +110,7 @@ powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
    choose **Join Competition** and accept the rules.
 2. In **Kaggle > Settings > API**, create a token and save it as `%USERPROFILE%\.kaggle\access_token`.
 3. Run the full pipeline. It downloads the 29 GB archive, then builds the warehouse, embeddings,
-   recommender, customer models, and serving tables:
+   product map, recommender, customer models, and serving tables:
 
 ```powershell
 .\.venv\Scripts\eie.exe build
@@ -131,7 +135,7 @@ downloads FashionCLIP into a volume.
 |---|---|
 | `eie build` | Runs every step below in order |
 | `eie data all` | Download, typed Parquet, DuckDB warehouse, integrity report, thumbnails |
-| `eie search embed` / `evaluate` | FashionCLIP embeddings / search benchmark |
+| `eie search embed` / `evaluate` / `galaxy` | FashionCLIP embeddings / search benchmark / 3D product map |
 | `eie recsys train` | Evaluate on the final week, run ablations, score every customer |
 | `eie customers train` | Churn, lifetime value, segments, and customer scores |
 | `eie serve prepare` / `run` | Build the serving tables / start the API (docs at `/docs`) |
@@ -147,7 +151,7 @@ Each command has `--help`. DuckDB's memory use can be capped with `EIE_DUCKDB_ME
 src/ecommerce_intelligence/
   data/        download, Parquet ingestion, warehouse, quality checks, thumbnails
   recsys/      candidate generators, ALS, features, LightGBM ranker, MAP@12
-  search/      FashionCLIP encoder, embeddings, FAISS index, benchmark
+  search/      FashionCLIP encoder, embeddings, FAISS index, benchmark, 3D map
   customers/   snapshots, churn, lifetime value, segments, campaign planner
   serving/     serving build and read-only store
   api/         FastAPI app, settings, response schemas

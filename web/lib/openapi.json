@@ -431,6 +431,56 @@
         }
       }
     },
+    "/api/galaxy": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Galaxy Meta",
+        "description": "The 3D product map: names for codes and the layout of the points.",
+        "operationId": "galaxy_meta_api_galaxy_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GalaxyMeta"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/galaxy/points": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Galaxy Points",
+        "description": "Every product's 3D position and attributes as one binary buffer.",
+        "operationId": "galaxy_points_api_galaxy_points_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/octet-stream": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/customers/sample": {
       "get": {
         "tags": [
@@ -2034,6 +2084,101 @@
           "colours"
         ],
         "title": "Facets"
+      },
+      "GalaxyField": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "dtype": {
+            "type": "string",
+            "enum": [
+              "float32",
+              "uint32",
+              "uint16",
+              "uint8"
+            ],
+            "title": "Dtype"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset",
+            "description": "Byte offset in the points buffer"
+          },
+          "length": {
+            "type": "integer",
+            "title": "Length",
+            "description": "Number of values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "dtype",
+          "offset",
+          "length"
+        ],
+        "title": "GalaxyField"
+      },
+      "GalaxyMeta": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "product_groups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Product Groups",
+            "description": "Names for group codes 0..n"
+          },
+          "colours": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Colours",
+            "description": "Names for colour codes 0..n"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/GalaxyField"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "sales_4w_max": {
+            "type": "integer",
+            "title": "Sales 4W Max"
+          },
+          "bytes": {
+            "type": "integer",
+            "title": "Bytes"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "built_at": {
+            "type": "string",
+            "title": "Built At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "product_groups",
+          "colours",
+          "fields",
+          "sales_4w_max",
+          "bytes",
+          "method",
+          "built_at"
+        ],
+        "title": "GalaxyMeta"
       },
       "HTTPValidationError": {
         "properties": {

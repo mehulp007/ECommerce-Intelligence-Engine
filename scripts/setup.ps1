@@ -31,7 +31,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # 3. The project and its pipelines
 Write-Host "Installing the project..." -ForegroundColor Cyan
-Invoke-Native $python @("-m", "pip", "install", "-e", ".[data,train,recsys,search,api,copilot,dev]", "--quiet")
+Invoke-Native $python @("-m", "pip", "install", "-e", ".[data,train,recsys,search,galaxy,api,copilot,dev]", "--quiet")
 
 # 4. Local settings with a private API key (the key is never printed)
 if (-not (Test-Path ".env")) { Copy-Item ".env.example" ".env" }

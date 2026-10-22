@@ -6,6 +6,7 @@ import {
   FlaskConical,
   LayoutDashboard,
   Megaphone,
+  Orbit,
   Menu,
   PieChart,
   Shirt,
@@ -29,6 +30,7 @@ const NAV = [
       { href: "/", label: "Overview", icon: LayoutDashboard },
       { href: "/customers", label: "Customer 360", icon: Users },
       { href: "/products", label: "Products", icon: Shirt },
+      { href: "/galaxy", label: "Galaxy", icon: Orbit },
       { href: "/segments", label: "Segments", icon: PieChart },
       { href: "/campaigns", label: "Campaigns", icon: Megaphone },
     ],
@@ -41,6 +43,8 @@ const NAV = [
     ],
   },
 ];
+
+const FULL_BLEED = ["/galaxy"];
 
 function ApiStatus() {
   const health = useQuery({
@@ -174,11 +178,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-9">
-          <div key={pathname} className="page-in">
-            {children}
-          </div>
-        </main>
+        {/* Full-screen pages, like the Galaxy, take the whole content area. */}
+        {FULL_BLEED.some((path) => pathname.startsWith(path)) ? (
+          <main className="relative min-w-0 flex-1">{children}</main>
+        ) : (
+          <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-9">
+            <div key={pathname} className="page-in">
+              {children}
+            </div>
+          </main>
+        )}
       </div>
     </div>
   );

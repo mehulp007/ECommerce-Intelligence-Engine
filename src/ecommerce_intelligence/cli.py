@@ -141,6 +141,7 @@ def build_all(
     data_all()
     search_embed(device=device)
     search_evaluate()
+    search_galaxy()
     recsys_train(ablations=ablations, score=True)
     customers_train(trials=trials)
     serve_prepare()
@@ -181,6 +182,20 @@ def search_evaluate() -> None:
         typer.echo(f"  {score:.1f}  {query}")
     typer.echo(f"Precision@10 {report['precision_at_10']:.3f}")
     typer.echo("Report: reports/search_quality.json")
+
+
+@search_app.command("galaxy")
+def search_galaxy() -> None:
+    """Lay out every product in 3D (PCA then UMAP) for the Galaxy page."""
+    from ecommerce_intelligence.search.galaxy import build_layout
+
+    started = time.perf_counter()
+    layout = build_layout(_paths(), log=typer.echo)
+    typer.echo(
+        f"{layout.meta['count']:,} products, {len(layout.meta['product_groups'])} "
+        f"product groups, {len(layout.meta['colours'])} colours"
+    )
+    _done("Galaxy layout", started)
 
 
 @customers_app.command("train")

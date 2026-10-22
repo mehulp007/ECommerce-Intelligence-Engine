@@ -149,6 +149,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/galaxy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Galaxy Meta
+         * @description The 3D product map: names for codes and the layout of the points.
+         */
+        get: operations["galaxy_meta_api_galaxy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/galaxy/points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Galaxy Points
+         * @description Every product's 3D position and attributes as one binary buffer.
+         */
+        get: operations["galaxy_points_api_galaxy_points_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/customers/sample": {
         parameters: {
             query?: never;
@@ -621,6 +661,51 @@ export interface components {
             /** Colours */
             colours: string[];
         };
+        /** GalaxyField */
+        GalaxyField: {
+            /** Name */
+            name: string;
+            /**
+             * Dtype
+             * @enum {string}
+             */
+            dtype: "float32" | "uint32" | "uint16" | "uint8";
+            /**
+             * Offset
+             * @description Byte offset in the points buffer
+             */
+            offset: number;
+            /**
+             * Length
+             * @description Number of values
+             */
+            length: number;
+        };
+        /** GalaxyMeta */
+        GalaxyMeta: {
+            /** Count */
+            count: number;
+            /**
+             * Product Groups
+             * @description Names for group codes 0..n
+             */
+            product_groups: string[];
+            /**
+             * Colours
+             * @description Names for colour codes 0..n
+             */
+            colours: string[];
+            /** Fields */
+            fields: components["schemas"]["GalaxyField"][];
+            /** Sales 4W Max */
+            sales_4w_max: number;
+            /** Bytes */
+            bytes: number;
+            /** Method */
+            method: string;
+            /** Built At */
+            built_at: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -939,6 +1024,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    galaxy_meta_api_galaxy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GalaxyMeta"];
+                };
+            };
+        };
+    };
+    galaxy_points_api_galaxy_points_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
                 };
             };
         };

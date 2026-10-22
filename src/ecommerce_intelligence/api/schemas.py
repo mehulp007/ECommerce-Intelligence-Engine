@@ -190,6 +190,24 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=40)
 
 
+class GalaxyField(BaseModel):
+    name: str
+    dtype: Literal["float32", "uint32", "uint16", "uint8"]
+    offset: int = Field(description="Byte offset in the points buffer")
+    length: int = Field(description="Number of values")
+
+
+class GalaxyMeta(BaseModel):
+    count: int
+    product_groups: list[str] = Field(description="Names for group codes 0..n")
+    colours: list[str] = Field(description="Names for colour codes 0..n")
+    fields: list[GalaxyField]
+    sales_4w_max: int
+    bytes: int
+    method: str
+    built_at: str
+
+
 class CopilotStatus(BaseModel):
     configured: bool
     model: str

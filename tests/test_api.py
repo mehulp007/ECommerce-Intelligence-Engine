@@ -166,3 +166,43 @@ def test_web_app_types_match_the_api_schema() -> None:
     assert (
         json.loads(saved.read_text(encoding="utf-8")) == current
     ), "Run `eie serve openapi`, then `npm run gen:api` in web/"
+
+
+def test_galaxy_meta_and_points_describe_the_same_products(client, world) -> None:
+    import numpy as np
+
+    from ecommerce_intelligence.search.galaxy import GalaxyLayout
+
+    assert client.get("/api/galaxy").status_code == 401
+    meta = client.get("/api/galaxy", headers=AUTH).json()
+    response = client.get("/api/galaxy/points", headers=AUTH)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/octet-stream"
+    payload = response.content
+    n = meta["count"]
+    assert len(payload) == meta["bytes"] == n * 21
+    fields = {f["name"]: f for f in meta["fields"]}
+    layout = GalaxyLayout.load(world.embeddings)
+    positions = np.frombuffer(payload, "<f4", n * 3, fields["position"]["offset"])
+    assert np.allclose(positions.reshape(n, 3), layout.positions)
+    ids = np.frombuffer(payload, "<u4", n, fields["article_id"]["offset"])
+    assert (ids == layout.article_ids).all()
+    sales = np.frombuffer(payload, "<u2", n, fields["sales_4w"]["offset"])
+    stats = pd.read_parquet(world.root / "data" / "serving" / "product_stats.parquet")
+    expected = stats.set_index("article_id")["sales_4w"].fillna(0)
+    for article_id, sold in zip(ids, sales, strict=True):
+        assert sold == int(expected.get(f"{article_id:010d}", 0))
+    assert meta["sales_4w_max"] == int(sales.max())
+
+
+def test_galaxy_is_503_until_the_map_is_built(client, monkeypatch) -> None:
+    from ecommerce_intelligence.serving.store import ServingStore
+
+    def missing(self):
+        raise FileNotFoundError("not built")
+
+    monkeypatch.setattr(ServingStore, "galaxy", missing)
+    for route in ("/api/galaxy", "/api/galaxy/points"):
+        response = client.get(route, headers=AUTH)
+        assert response.status_code == 503
+        assert "eie search galaxy" in response.json()["detail"]

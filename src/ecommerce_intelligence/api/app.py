@@ -12,7 +12,7 @@ from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ecommerce_intelligence.api import schemas
@@ -271,6 +271,44 @@ def create_app(
         hits = search.search_text(engine.encoder(), q, k)
         details = data.articles([h.article_id for h in hits])
         return [{"score": h.score, "article": details[h.article_id]} for h in hits]
+
+    def galaxy_or_503(data: ServingStore) -> tuple[dict, bytes]:
+        try:
+            return data.galaxy()
+        except FileNotFoundError:
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                "Run `eie search galaxy` to build the product map",
+            ) from None
+
+    @app.get(
+        "/api/galaxy",
+        response_model=schemas.GalaxyMeta,
+        tags=["products"],
+        dependencies=secured,
+    )
+    def galaxy_meta(data: Store) -> dict:
+        """The 3D product map: names for codes and the layout of the points."""
+        return galaxy_or_503(data)[0]
+
+    @app.get(
+        "/api/galaxy/points",
+        tags=["products"],
+        dependencies=secured,
+        response_class=Response,
+        responses={200: {"content": {"application/octet-stream": {}}}},
+    )
+    def galaxy_points(data: Store) -> Response:
+        """Every product's 3D position and attributes as one binary buffer."""
+        meta, payload = galaxy_or_503(data)
+        return Response(
+            payload,
+            media_type="application/octet-stream",
+            headers={
+                "Cache-Control": "private, max-age=3600",
+                "ETag": f'"{meta["built_at"]}"',
+            },
+        )
 
     @app.get("/images/{article_id}.webp", tags=["products"], include_in_schema=False)
     def image(article_id: str, data: Store) -> FileResponse:

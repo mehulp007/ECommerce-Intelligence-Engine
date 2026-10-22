@@ -41,6 +41,10 @@ search = [
     "transformers>=4.45,<6",
     "faiss-cpu>=1.8,<2",
 ]
+galaxy = [
+    "umap-learn>=0.5,<1",
+    "scikit-learn>=1.5,<2",
+]
 api = [
     "fastapi>=0.115,<1",
     "uvicorn[standard]>=0.30,<1",

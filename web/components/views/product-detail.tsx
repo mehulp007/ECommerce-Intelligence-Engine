@@ -1,12 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Orbit } from "lucide-react";
 import Link from "next/link";
 
 import { BarsChart } from "@/components/charts";
 import { ProductCard, ProductGrid, ProductImage } from "@/components/product";
-import { Badge, Card, CardTitle, EmptyState, ErrorState, Skeleton } from "@/components/ui";
+import { Badge, buttonClasses, Card, CardTitle, EmptyState, ErrorState, Skeleton } from "@/components/ui";
 import { ApiError, getJson } from "@/lib/api";
 import { compact, date, int, pct, units } from "@/lib/format";
 import type { ArticleDetail, SearchHit } from "@/lib/types";
@@ -100,7 +100,16 @@ export function ProductDetailView({ id }: { id: string }) {
       </div>
 
       <Card className="mt-6">
-        <CardTitle hint="Nearest neighbours in FashionCLIP's joint image and text space">Looks similar</CardTitle>
+        <CardTitle
+          hint="Nearest neighbours in FashionCLIP's joint image and text space"
+          action={
+            <Link href={`/galaxy?product=${id}`} className={buttonClasses("secondary", "sm")}>
+              <Orbit className="size-3.5" aria-hidden /> Show in the Galaxy
+            </Link>
+          }
+        >
+          Looks similar
+        </CardTitle>
         {similar.error ? (
           <ErrorState error={similar.error} />
         ) : similar.data ? (
