@@ -42,22 +42,26 @@ export interface Series {
 }
 
 const axis = {
-  tick: { fill: "var(--muted)", fontSize: 11 },
-  stroke: "var(--grid)",
+  tick: { fill: "var(--muted)", fontSize: 11, fontFamily: "var(--font-geist-mono)" },
+  stroke: "var(--border)",
   tickLine: false,
 };
 
+/** Category labels read better in the UI font; numbers stay monospaced. */
+const categoryTick = { ...axis.tick, fontFamily: "var(--font-geist-sans)" };
+
 const tooltip = {
   contentStyle: {
-    background: "var(--surface)",
-    border: "1px solid var(--border)",
-    borderRadius: 8,
+    background: "var(--surface-2)",
+    border: "1px solid var(--border-strong)",
+    borderRadius: 10,
     fontSize: 12,
     color: "var(--fg)",
+    boxShadow: "0 12px 32px -12px rgba(0, 0, 0, 0.8)",
   },
   labelStyle: { color: "var(--muted)", marginBottom: 4 },
   itemStyle: { padding: 0 },
-  cursor: { fill: "var(--surface-2)", stroke: "var(--grid)" },
+  cursor: { fill: "rgba(255, 255, 255, 0.03)", stroke: "var(--border-strong)" },
 };
 
 const plain = (v: unknown) => String(v);
@@ -92,7 +96,7 @@ export function TrendChart({
   return (
     <ResponsiveContainer width="100%" height={height}>
       <Chart data={data} margin={{ top: 8, right: hasRight ? 0 : 8, bottom: 0, left: 0 }}>
-        <CartesianGrid stroke="var(--grid)" vertical={false} />
+        <CartesianGrid stroke="var(--grid)" strokeDasharray="3 4" vertical={false} />
         <XAxis dataKey={x} {...axis} tickFormatter={xFormat} minTickGap={28} />
         <YAxis yAxisId="left" {...axis} tickFormatter={yFormat} width={56} />
         {hasRight && (
@@ -129,7 +133,7 @@ export function TrendChart({
               name={s.label}
               stroke={s.color ?? COLORS[i]}
               fill={s.color ?? COLORS[i]}
-              fillOpacity={0.12}
+              fillOpacity={0.1}
               strokeWidth={2}
               dot={false}
             />
@@ -184,7 +188,7 @@ export function BarsChart({
         layout={horizontal ? "vertical" : "horizontal"}
         margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
       >
-        <CartesianGrid stroke="var(--grid)" vertical={horizontal} horizontal={!horizontal} />
+        <CartesianGrid stroke="var(--grid)" strokeDasharray="3 4" vertical={horizontal} horizontal={!horizontal} />
         {horizontal ? (
           <>
             <XAxis type="number" {...axis} tickFormatter={yFormat} />
@@ -192,6 +196,7 @@ export function BarsChart({
               type="category"
               dataKey={x}
               {...axis}
+              tick={categoryTick}
               width={categoryWidth}
               tickFormatter={xFormat}
               interval={0}
@@ -199,7 +204,7 @@ export function BarsChart({
           </>
         ) : (
           <>
-            <XAxis dataKey={x} {...axis} tickFormatter={xFormat} interval="preserveStartEnd" />
+            <XAxis dataKey={x} {...axis} tick={categoryTick} tickFormatter={xFormat} interval="preserveStartEnd" />
             <YAxis {...axis} tickFormatter={yFormat} width={56} />
           </>
         )}
@@ -254,7 +259,7 @@ export function BubbleChart({
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ScatterChart margin={{ top: 12, right: 16, bottom: 16, left: 0 }}>
-        <CartesianGrid stroke="var(--grid)" />
+        <CartesianGrid stroke="var(--grid)" strokeDasharray="3 4" />
         <XAxis
           type="number"
           dataKey={x}

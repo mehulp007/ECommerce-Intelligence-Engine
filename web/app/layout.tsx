@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AppShell } from "@/components/app-shell";
 import { Providers } from "@/components/providers";
-import { themeScript } from "@/components/theme";
 
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+
+export const viewport: Viewport = { themeColor: "#0a0a0a", colorScheme: "dark" };
 
 export const metadata: Metadata = {
   title: { default: "E-Commerce Intelligence Engine", template: "%s · Intelligence Engine" },
@@ -18,15 +19,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-    >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
-      <body className="font-sans">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className="bg-bg font-sans text-fg">
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>

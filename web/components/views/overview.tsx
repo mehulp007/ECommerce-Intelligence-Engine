@@ -273,7 +273,7 @@ export function OverviewView() {
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+      <div className="mt-4 grid gap-4 lg:grid-cols-3 lg:items-start">
         <Card>
           <CardTitle hint="Customers with a purchase, by age band">Buyers by age</CardTitle>
           {derived ? (

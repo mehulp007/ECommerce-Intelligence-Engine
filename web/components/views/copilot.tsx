@@ -459,16 +459,28 @@ export function CopilotView() {
 
       <div className="flex flex-1 flex-col gap-6">
         {messages.length === 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {SUGGESTIONS.map((suggestion) => (
-              <button
-                key={suggestion}
-                onClick={() => ask(suggestion)}
-                className="rounded-xl border border-border bg-surface p-4 text-left text-sm transition-colors hover:border-accent/60"
-              >
-                {suggestion}
-              </button>
-            ))}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3 text-sm text-muted">
+              <span className="flex size-9 items-center justify-center rounded-xl border border-accent/30 bg-accent-soft text-accent">
+                <Sparkles className="size-4" aria-hidden />
+              </span>
+              Start with one of these, or ask your own question below.
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {SUGGESTIONS.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  onClick={() => ask(suggestion)}
+                  className="group flex items-start justify-between gap-3 rounded-2xl border border-border bg-surface p-4 text-left text-sm leading-relaxed transition-colors hover:border-accent/50 hover:bg-surface-2"
+                >
+                  {suggestion}
+                  <ArrowUp
+                    className="mt-0.5 size-4 shrink-0 rotate-45 text-muted transition-colors group-hover:text-accent"
+                    aria-hidden
+                  />
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           messages.map((message, i) =>

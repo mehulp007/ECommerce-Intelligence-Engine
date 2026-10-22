@@ -1,10 +1,10 @@
 # Project Status
 
-Last updated: 2026-10-13
+Last updated: 2026-10-23
 
 ## Current phase
 
-**All phases complete.** Phase 8 added CI, Docker Compose, one-command setup, and the final README.
+**All build phases complete.** A design upgrade is under way in five stages: Graphite Mint restyle (done), Product Galaxy, 3D scroll story, UX extras, and a README GIF.
 
 ## Phase log
 
@@ -99,7 +99,7 @@ validation week rather than the held-out week.
 | Pages | Overview, Customer 360 (list and profile), Products (browse, describe, detail), Segments, Campaigns, Copilot, Model Lab |
 | API access | Next.js route handlers forward `/api/*` and `/images/*` and add the bearer key on the server; 0 key matches in the client bundle, server build, or served HTML |
 | Types | Generated from the OpenAPI schema (`eie serve openapi`, `npm run gen:api`); a pytest check catches drift |
-| Responsive check | No horizontal overflow at 375 px on any page; light and dark themes |
+| Responsive check | No horizontal overflow at 375 px on any page (light and dark themes at the time; dark only since the redesign) |
 | Copilot UI | All event types rendered from a real-tool replay; live Gemini call showed the quota message (free tier exhausted) |
 | Checks | `npm run lint`, `npm run typecheck`, `npm run build` clean; 73 Python tests |
 
@@ -112,6 +112,17 @@ validation week rather than the held-out week.
 | Docker | `compose.yaml` with an API image (CPU PyTorch) and a standalone Next.js image; data and reports mounted read-only; ports bound to 127.0.0.1 |
 | Tests | 74 Python tests, including the build order; they also pass without PyTorch, as CI runs them |
 | README | Rewritten: features, held-out results, architecture, stack, three-step setup |
+
+## Design stage 1 — Graphite Mint restyle
+
+| Item | Value |
+|---|---|
+| Theme | One dark theme: graphite surfaces (#0A0A0A, #141414, #1C1C1C), mint accent #3DDC97, violet #9B8CFF; the light/dark toggle was removed |
+| Typography | Geist Sans for text; Geist Mono for headline numbers and chart axes |
+| Contrast | All text and accent pairs pass WCAG AA (lowest 5.07:1, muted text on raised surfaces) |
+| Components | Cards, stats, buttons, inputs, chips, badges, charts, product cards, and a grouped sidebar with a mint active indicator; pages fade in unless reduced motion is set |
+| Responsive check | No horizontal overflow at 375 px on any of the 9 routes checked |
+| Security | Next.js upgraded 16.4.0 → 16.4.2 for a critical advisory (GHSA-2464-fhr4-w9xw); `npm audit --omit=dev` reports 0 vulnerabilities |
 
 ## Known data facts
 

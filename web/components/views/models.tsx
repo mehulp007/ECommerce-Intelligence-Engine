@@ -158,7 +158,7 @@ function Recommender({ r }: { r: NonNullable<ModelReports["recommender_metrics"]
             data={gains}
             x="feature"
             horizontal
-            categoryWidth={160}
+            categoryWidth={180}
             height={gains.length * 26 + 30}
             series={[{ key: "gain", label: "Gain" }]}
             yFormat={(v) => compact(v)}

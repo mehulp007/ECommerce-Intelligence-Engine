@@ -23,7 +23,7 @@ export function ProductImage({
   const [failed, setFailed] = useState(false);
   const show = article.has_image && !failed;
   return (
-    <div className={cn("relative aspect-[2/3] overflow-hidden rounded-lg bg-surface-2", className)}>
+    <div className={cn("relative aspect-[2/3] overflow-hidden rounded-xl bg-surface-2", className)}>
       {show ? (
         // Thumbnails are already small WebP files, so they are served as they are.
         // eslint-disable-next-line @next/next/no-img-element
@@ -60,7 +60,7 @@ export function ProductCard({
   return (
     <Link
       href={`/products/${article.article_id}`}
-      className="group flex flex-col gap-2 rounded-xl border border-border bg-surface p-2 transition-colors hover:border-accent/60"
+      className="group flex flex-col gap-2 rounded-2xl border border-border bg-surface p-2 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/50 motion-reduce:hover:translate-y-0"
     >
       <div className="relative">
         <ProductImage article={article} priority={priority} />
@@ -99,7 +99,7 @@ export function ProductGrid({ children, dense = false }: { children: ReactNode; 
 export function ReasonBadge({ reason }: { reason: Reason }) {
   const info = REASONS[reason];
   return (
-    <Badge className="bg-surface/90 text-fg shadow-sm backdrop-blur" title={info.hint}>
+    <Badge className="border border-white/10 bg-black/70 text-fg backdrop-blur" title={info.hint}>
       {info.label}
     </Badge>
   );
